@@ -17,7 +17,7 @@ public class Client extends Application {
     public void start(Stage stage)  {
         DBmanager.setUpConnection();
         crudStageMenu = new CrudStages(DBmanager);
-        Scene scene = JavaFxObjectsManager.createScene(crudMenuOrganizer, 400, 500);
+        Scene scene = JavaFxObjectsManager.createScene(crudMenuOrganizer, 500, 900);
         JavaFxObjectsManager.setStage(stage, scene, "DatabaseClient");
     }
     private Button[] setUpCrudButtons() {
@@ -29,9 +29,9 @@ public class Client extends Application {
     }
     private VBox setUpCrudMenus() {
         Button[] crudButtons = setUpCrudButtons();
-        HBox crudButtonsOrganizer = JavaFxObjectsManager.createHBox(8, 8);
+        HBox crudButtonsOrganizer = JavaFxObjectsManager.createHBox(4, 4);
         JavaFxObjectsManager.fillOrganizer(crudButtonsOrganizer, crudButtons);
-        VBox emptyOrganizer = JavaFxObjectsManager.createVBox(8, 8);
+        VBox emptyOrganizer = JavaFxObjectsManager.createVBox(4, 4);
         Pane[] crudMenuChildren = {crudButtonsOrganizer, emptyOrganizer};
         VBox returnBox = JavaFxObjectsManager.createVBox(0, 0);
         JavaFxObjectsManager.fillOrganizer(returnBox, crudMenuChildren);

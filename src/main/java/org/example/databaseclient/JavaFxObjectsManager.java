@@ -4,9 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Control;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -54,5 +52,14 @@ public class JavaFxObjectsManager {
         returnObj.getItems().addAll(elements);
         returnObj.setOrientation(Orientation.HORIZONTAL);
         return returnObj;
+    }
+    static public TextField createTextField() {
+        return new TextField();
+    }
+    static public Label createLabel(String text) {
+        return new Label(text);
+    }
+    static public DatePicker createDataPicker(){
+        return new DatePicker();
     }
 }
