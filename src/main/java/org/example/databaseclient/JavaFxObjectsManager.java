@@ -1,5 +1,7 @@
 package org.example.databaseclient;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -57,9 +59,26 @@ public class JavaFxObjectsManager {
         return new TextField();
     }
     static public Label createLabel(String text) {
-        return new Label(text);
+        Label returnObj = new Label(text);
+        returnObj.setWrapText(true);
+        return returnObj;
     }
     static public DatePicker createDataPicker(){
         return new DatePicker();
+    }
+    static public CheckBox createCheckBox(String label){
+        return new CheckBox(label);
+    }
+    static public TableView<ObservableList<String>> createTableView(ArrayList<String> columnNames){
+        TableView<ObservableList<String>> returnObj = new TableView<>();
+        for(int i = 0; i < columnNames.size(); i++) {
+            TableColumn<ObservableList<String>, String> col = new TableColumn<>(columnNames.get(i));
+            int finalI = i;
+            col.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().get(finalI))
+            );
+            returnObj.getColumns().add(col);
+        }
+        return returnObj;
     }
 }

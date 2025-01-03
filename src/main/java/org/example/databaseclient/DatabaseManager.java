@@ -3,7 +3,7 @@ package org.example.databaseclient;
 import javafx.util.Pair;
 
 import java.sql.*;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class DatabaseManager {
@@ -36,32 +36,24 @@ public class DatabaseManager {
             return null;
         }
     }
-    public void updateListView(ArrayList<Pair<String, Integer>> listOfColumns, String selectedTable) {
+    public ArrayList<Pair<String, Integer>> getColumnNames(String selectedTable) {
+        ArrayList <Pair<String, Integer>> returnObj = new ArrayList<>();
         try {
-            listOfColumns.clear();
             ResultSet columns = metaData.getColumns(null, username, selectedTable, "%");
             while (columns.next()) {
                 String columnName = columns.getString("COLUMN_NAME");
                 int columnType = columns.getInt("DATA_TYPE");
-                listOfColumns.add(new Pair<>(columnName, columnType));
+                returnObj.add(new Pair<>(columnName, columnType));
             }
         } catch (SQLException e) {
             System.err.println("Nie udalo sie pobrac kolumn: " + e.getMessage());
         }
+        return returnObj;
     }
     public String insertIntoTable(String tableName, ArrayList<String>data) {
         StringBuilder values = new StringBuilder();
-        ArrayList <Integer> listOfColumns = new ArrayList<>();
+        ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
         String resultMessage;
-        try {
-            ResultSet columns = metaData.getColumns(null, username, tableName, "%");
-            while (columns.next()) {
-                int columnType = columns.getInt("DATA_TYPE");
-                listOfColumns.add(columnType);
-            }
-        } catch (SQLException e) {
-            System.err.println("Nie udalo sie pobrac kolumn: " + e.getMessage());
-        }
         for (int i = 0; i < data.size(); i++) {
             values.append("?");
             if (i < data.size() - 1)
@@ -71,7 +63,7 @@ public class DatabaseManager {
         try {
             PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
             for (int i = 0; i < data.size(); i++) {
-                switch (listOfColumns.get(i)){
+                switch (listOfColumns.get(i).getValue()){
                     case 2:
                         statement.setInt(i + 1, Integer.parseInt(data.get(i)));
                         break;
@@ -80,18 +72,42 @@ public class DatabaseManager {
                         statement.setString(i + 1, data.get(i));
                         break;
                     case 93:
-                        statement.setDate(i + 1, Date.valueOf(data.get(i)));
+                        LocalDateTime localDateTime = LocalDateTime.parse(data.get(i));
+                        Timestamp sqlTimestamp = Timestamp.valueOf(localDateTime);
+                        statement.setTimestamp(i + 1, sqlTimestamp);
                         break;
                     default:
                         break;
                 }
             }
-            int rowsAffected = statement.executeUpdate();
-            resultMessage = "Rows inserted: " + rowsAffected;
+            statement.executeUpdate();
+            resultMessage = "Row inserted";
         } catch (SQLException e) {
-            System.err.println("Error during insert: " + e.getMessage());
+            System.err.println("Blad podczas insert: " + e.getMessage());
             resultMessage = e.getMessage();
         }
         return resultMessage;
+    }
+    public Pair<ResultSet,String> readFromTable(String tableName, ArrayList<Boolean>data){
+        StringBuilder values = new StringBuilder();
+        ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
+        String resultMessage;
+        for (int i = 0; i < data.size(); i++) {
+            values.append(listOfColumns.get(i).getKey());
+            if (i < data.size() - 1)
+                values.append(", ");
+        }
+        String sqlStatement = "SELECT " + values + " FROM " + tableName;
+        ResultSet rowsQueried;
+        try {
+            PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
+            rowsQueried = statement.executeQuery();
+            resultMessage = "";
+        } catch (SQLException e) {
+            System.err.println("Blad podczas read: " + e.getMessage());
+            rowsQueried = null;
+            resultMessage = e.getMessage();
+        }
+        return new Pair<>(rowsQueried, resultMessage);
     }
 }
