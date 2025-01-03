@@ -7,7 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 
-import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
