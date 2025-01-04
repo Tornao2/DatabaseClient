@@ -41,8 +41,8 @@ public class JavaFxObjectsManager {
     static public void fillOrganizer(Pane parent, Pane[] children){
         parent.getChildren().addAll(children);
     }
-    static public Scene createScene(Pane paneObject, int width, int height) {
-        return new Scene(paneObject, width, height);
+    static public void fillOrganizer(Pane parent, Pane children){
+        parent.getChildren().addAll(children);
     }
     static public void setStage(Stage stage, Scene scene, String title){
         stage.setScene(scene);
@@ -55,19 +55,10 @@ public class JavaFxObjectsManager {
         returnObj.setOrientation(Orientation.HORIZONTAL);
         return returnObj;
     }
-    static public TextField createTextField() {
-        return new TextField();
-    }
     static public Label createLabel(String text) {
         Label returnObj = new Label(text);
         returnObj.setWrapText(true);
         return returnObj;
-    }
-    static public DatePicker createDataPicker(){
-        return new DatePicker();
-    }
-    static public CheckBox createCheckBox(String label){
-        return new CheckBox(label);
     }
     static public TableView<ObservableList<String>> createTableView(ArrayList<String> columnNames){
         TableView<ObservableList<String>> returnObj = new TableView<>();
@@ -80,5 +71,11 @@ public class JavaFxObjectsManager {
             returnObj.getColumns().add(col);
         }
         return returnObj;
+    }
+    static public int getObjectId(Pane organizer, String idName){
+        for(int i = 0; i < organizer.getChildren().size(); i++)
+            if(organizer.getChildren().get(i).getId() != null && organizer.getChildren().get(i).getId().equals(idName))
+                return i;
+        return -1;
     }
 }

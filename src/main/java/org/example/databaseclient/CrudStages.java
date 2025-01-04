@@ -43,6 +43,7 @@ public class CrudStages {
     }
     private VBox sharedSetUp() {
         VBox returnObj = JavaFxObjectsManager.createVBox(4, 4);
+        returnObj.setId("CrudMenus");
         ListView<String> tables = createTableChoice();
         if (tables != null)
             tables.setPrefHeight(60);
@@ -55,14 +56,9 @@ public class CrudStages {
         while (true) {
             try {
                 if (!tables.next()) break;
-            } catch (SQLException e) {
-                System.err.println("Blad przy przechodzeniu po tabeli: " + e.getMessage());
-                return null;
-            }
-            try {
                 names.add(tables.getString("TABLE_NAME"));
             } catch (SQLException e) {
-                System.err.println("Blad przy pobraniu nazwy: " + e.getMessage());
+                System.err.println("Blad przy procesowaniu tabeli: " + e.getMessage());
                 return null;
             }
         }
@@ -74,15 +70,17 @@ public class CrudStages {
         return JavaFxObjectsManager.createHorizontalListView(tableNames);
     }
     private void finishDisplaying(String text, Runnable function){
-        Button insert = JavaFxObjectsManager.createButton(text, function);
-        Label placeholder = JavaFxObjectsManager.createLabel("");
-        Control [] finishControls = {insert, placeholder};
+        Button button = JavaFxObjectsManager.createButton(text, function);
+        button.setId("ActionButton");
+        Label debugLabel = JavaFxObjectsManager.createLabel("");
+        debugLabel.setId("debugLabel");
+        Control [] finishControls = {button, debugLabel};
         JavaFxObjectsManager.fillOrganizer(organizer, finishControls);
     }
     private void finishSendingStatements(String text){
-        Label result = (Label) organizer.getChildren().getLast();
-        result.setText(text);
-        organizer.getChildren().set(organizer.getChildren().size() - 1, result);
+        int id = JavaFxObjectsManager.getObjectId(organizer, "debugLabel");
+        Label debugLabel = (Label) organizer.getChildren().get(id);
+        debugLabel.setText(text);
     }
     private void displayColumnsForInsert (String selectedTable) {
         ArrayList<Pair<String, Integer>> columns = DBmanager.getColumnNames(selectedTable);
@@ -96,12 +94,12 @@ public class CrudStages {
                 case 1:
                 case 2:
                 case 12:
-                    TextField stringField = JavaFxObjectsManager.createTextField();
+                    TextField stringField = new TextField();
                     temp = new Control[]{columnName, stringField};
                     break;
                 case 93:
-                    DatePicker dateField = JavaFxObjectsManager.createDataPicker();
-                    TextField hourField = JavaFxObjectsManager.createTextField();
+                    DatePicker dateField = new DatePicker();
+                    TextField hourField = new TextField();
                     temp = new Control[]{columnName, dateField, hourField};
                     break;
                 default:
@@ -145,9 +143,13 @@ public class CrudStages {
         if (organizer.getChildren().size() > 1)
             organizer.getChildren().subList(1, organizer.getChildren().size()).clear();
         for(Pair <String, Integer> pair: columns){
-            CheckBox columnCheck = JavaFxObjectsManager.createCheckBox(pair.getKey());
+            CheckBox columnCheck = new CheckBox(pair.getKey());
             JavaFxObjectsManager.fillOrganizer(organizer, columnCheck);
         }
+        CheckBox additionalChoice = new CheckBox("Dodatkowy warunek wyboru?");
+        additionalChoice.setId("Ignore");
+        additionalChoice.selectedProperty().addListener(new ReadCheckBoxListener(organizer, DBmanager));
+        JavaFxObjectsManager.fillOrganizer(organizer, additionalChoice);
         finishDisplaying("Read from table", this::sendReadStatement);
     }
     private void sendReadStatement(){
@@ -155,7 +157,7 @@ public class CrudStages {
             organizer.getChildren().removeLast();
         ArrayList<Boolean> data = new ArrayList<>();
         organizer.getChildren().forEach(node -> {
-            if (node instanceof CheckBox) {
+            if (node instanceof CheckBox && node.getId() == null) {
                 Boolean check = ((CheckBox) node).isSelected();
                 data.add(check);
             }

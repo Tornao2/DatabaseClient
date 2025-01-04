@@ -17,7 +17,15 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main" />
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[DELETE FROM bilety when 1 = 1;
+DELETE FROM filmy when 1 = 1;
+DELETE FROM kina when 1 = 1;
+DELETE FROM konta when 1 = 1;
+DELETE FROM miejsca when 1 = 1;
+DELETE FROM oceny when 1 = 1;
+DELETE FROM PRACOWNICY when 1 = 1;
+DELETE FROM SALE when 1 = 1;
+DELETE FROM SEANSE when 1 = 1;]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">

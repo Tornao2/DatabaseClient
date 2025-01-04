@@ -11,22 +11,13 @@ public class DatabaseManager {
     private DatabaseMetaData metaData;
     private final String username = "C##CLIENT";
 
-    public void setUpConnection () {
-        try {
-            DBConnection = DriverManager.getConnection(
-                    "jdbc:oracle:thin:@localhost:1521:XE",
-                    username,
-                    "projekt"
-            );
-        } catch (SQLException e) {
-            System.err.println("Nie polaczono z baza: " + e.getMessage());
-            return;
-        }
-        try {
-            metaData = DBConnection.getMetaData();
-        } catch (SQLException e) {
-            System.err.println("Nie udalo sie pobrac metadata: " + e.getMessage());
-        }
+    public void setUpConnection () throws SQLException {
+        DBConnection = DriverManager.getConnection(
+                "jdbc:oracle:thin:@localhost:1521:XE",
+                username,
+                "projekt"
+        );
+        metaData = DBConnection.getMetaData();
     }
     public ResultSet getTables() {
         try {
