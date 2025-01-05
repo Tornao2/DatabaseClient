@@ -55,7 +55,7 @@ public class ReadCheckBoxListener implements ChangeListener<Boolean>{
         ToggleButton tb4 = new ToggleButton("Pomiedzy");
         tb4.setId("Between");
         tb4.setToggleGroup(toggleGroup);
-        toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+        toggleGroup.selectedToggleProperty().addListener((_, _, newValue) -> {
             if (newValue == tb4) {
                 VBox BetweenBox = JavaFxObjectsManager.createVBox(4, 4);
                 BetweenBox.setId("BetweenBox");
