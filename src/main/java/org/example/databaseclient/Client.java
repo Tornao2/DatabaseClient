@@ -48,22 +48,24 @@ public class Client extends Application {
         JavaFxObjectsManager.fillOrganizer(returnBox, crudMenuChildren);
         return returnBox;
     }
+
     private void setInsertStage(){
-        int id = JavaFxObjectsManager.getObjectId(crudMenuOrganizer, "CrudMenus");
+        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.insertStage());
     }
     private void setReadStage(){
-        int id = JavaFxObjectsManager.getObjectId(crudMenuOrganizer, "CrudMenus");
+        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.readStage());
     }
     private void setUpdateStage(){
-        int id = JavaFxObjectsManager.getObjectId(crudMenuOrganizer, "CrudMenus");
+        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.updateStage());
     }
     private void setDeleteStage(){
-        int id = JavaFxObjectsManager.getObjectId(crudMenuOrganizer, "CrudMenus");
+        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.deleteStage());
     }
+
     private void testConnection() {
         try {
             DBmanager.setUpConnection();

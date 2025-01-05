@@ -41,6 +41,7 @@ public class DatabaseManager {
         }
         return returnObj;
     }
+
     public String insertIntoTable(String tableName, ArrayList<String>data) {
         StringBuilder values = new StringBuilder();
         ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
@@ -79,26 +80,69 @@ public class DatabaseManager {
         }
         return resultMessage;
     }
-    public Pair<ResultSet,String> readFromTable(String tableName, ArrayList<Boolean>data){
+
+    public Pair<ResultSet,String> readFromTable(String tableName, ArrayList<Boolean>data, ArrayList<String> compareData){
         StringBuilder values = new StringBuilder();
         ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
-        String resultMessage;
+        String resultMessage = "";
         for (int i = 0; i < data.size(); i++) {
             values.append(listOfColumns.get(i).getKey());
             if (i < data.size() - 1)
                 values.append(", ");
         }
         String sqlStatement = "SELECT " + values + " FROM " + tableName;
+        if (compareData != null) {
+            boolean check = true;
+            for (String compareDatum : compareData)
+                if (compareDatum == null)
+                    check = false;
+            if (check)
+                sqlStatement = compareDataModify(sqlStatement, compareData, tableName);
+        }
         ResultSet rowsQueried;
         try {
             PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
             rowsQueried = statement.executeQuery();
-            resultMessage = "";
         } catch (SQLException e) {
             System.err.println("Blad podczas read: " + e.getMessage());
             rowsQueried = null;
             resultMessage = e.getMessage();
         }
         return new Pair<>(rowsQueried, resultMessage);
+    }
+    private String compareDataModify(String sqlStatement, ArrayList<String> compareData, String tableName) {
+        ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
+        sqlStatement = sqlStatement.concat(" WHERE ").concat(compareData.get(1));
+        String type = switch (compareData.get(0)) {
+            case "Equal" -> " = ";
+            case "Lower" -> " > ";
+            case "Higher" -> " < ";
+            case "Between" -> " BETWEEN ";
+            default -> "";
+        };
+        sqlStatement = sqlStatement.concat(type);
+        ArrayList<Pair<String, Integer>> columns = getColumnNames(tableName);
+        int num = 0;
+        for (int i = 0; i < columns.size(); i++) {
+                if(columns.get(i).getKey().equals(compareData.get(1)))
+                    num = i;
+        }
+        switch (listOfColumns.get(num).getValue()){
+                case 2:
+                    sqlStatement = sqlStatement.concat(compareData.get(2));
+                    if (type.equals(" BETWEEN "))
+                        sqlStatement = sqlStatement.concat(" AND ").concat(compareData.get(3));
+                    break;
+                case 1:
+                case 12:
+                case 93:
+                    sqlStatement = sqlStatement.concat("'").concat(compareData.get(2)).concat("'");
+                    if (type.equals(" BETWEEN "))
+                        sqlStatement = sqlStatement.concat(" AND ").concat("'").concat(compareData.get(3)).concat("'");
+                    break;
+                default:
+                    break;
+        }
+        return sqlStatement;
     }
 }

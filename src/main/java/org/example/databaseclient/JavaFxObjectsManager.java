@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -71,11 +72,5 @@ public class JavaFxObjectsManager {
             returnObj.getColumns().add(col);
         }
         return returnObj;
-    }
-    static public int getObjectId(Pane organizer, String idName){
-        for(int i = 0; i < organizer.getChildren().size(); i++)
-            if(organizer.getChildren().get(i).getId() != null && organizer.getChildren().get(i).getId().equals(idName))
-                return i;
-        return -1;
     }
 }

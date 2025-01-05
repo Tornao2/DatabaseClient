@@ -23,40 +23,63 @@ public class ReadCheckBoxListener implements ChangeListener<Boolean>{
             VBox overallOrganizer = JavaFxObjectsManager.createVBox(4, 4);
             overallOrganizer.setId("checkBoxLogicRead");
             HBox basicToggles = setBasicToggles();
-            HBox valueBox =  setValueBox();
+            TextField valueField = setValueField();
+            VBox overallValueBox = JavaFxObjectsManager.createVBox(4, 4);
+            overallValueBox.setId("ValueBox");
+            overallValueBox.getChildren().add(valueField);
             ListView <String> listOfColumns = setColumn();
+            listOfColumns.setId("ColumnChoice");
             listOfColumns.setPrefHeight(60);
-            int id = JavaFxObjectsManager.getObjectId(organizer, "ActionButton");
+            int id = organizer.getChildren().indexOf((organizer.lookup("#ActionButton")));
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
-            JavaFxObjectsManager.fillOrganizer(overallOrganizer, valueBox);
+            JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             organizer.getChildren().add(id, overallOrganizer);
-        } else {
-            int id = JavaFxObjectsManager.getObjectId(organizer, "checkBoxLogicRead");
-            organizer.getChildren().remove(id);
-        }
+        } else
+            organizer.getChildren().remove((organizer.lookup("#checkBoxLogicRead")));
     }
     private HBox setBasicToggles () {
         ToggleGroup toggleGroup = new ToggleGroup();
         HBox toggles = JavaFxObjectsManager.createHBox(4, 4);
+        toggles.setId("Toggles");
         ToggleButton tb1 = new ToggleButton("Rowny");
+        tb1.setId("Equal");
         tb1.setToggleGroup(toggleGroup);
         tb1.setSelected(true);
-        ToggleButton tb2 = new ToggleButton("Mniejszy(jesli ma to sens)");
+        ToggleButton tb2 = new ToggleButton("Mniejszy");
+        tb2.setId("Lower");
         tb2.setToggleGroup(toggleGroup);
-        ToggleButton tb3 = new ToggleButton("Wiekszy(jesli ma to sens)");
+        ToggleButton tb3 = new ToggleButton("Wiekszy");
+        tb3.setId("Higher");
         tb3.setToggleGroup(toggleGroup);
-        Control[] controls = {tb1, tb2, tb3};
+        ToggleButton tb4 = new ToggleButton("Pomiedzy");
+        tb4.setId("Between");
+        tb4.setToggleGroup(toggleGroup);
+        toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == tb4) {
+                VBox BetweenBox = JavaFxObjectsManager.createVBox(4, 4);
+                BetweenBox.setId("BetweenBox");
+                Label moreLabel = new Label("Wiecej niz: ");
+                TextField valueField = new TextField();
+                valueField.setId("Dodatkowa");
+                Label lessLabel = new Label("mniej niz: ");
+                Control [] temp = {moreLabel, valueField, lessLabel};
+                JavaFxObjectsManager.fillOrganizer(BetweenBox, temp);
+                ((VBox) organizer.lookup("#checkBoxLogicRead").lookup("#ValueBox")).getChildren().addFirst(BetweenBox);
+            } else {
+                VBox BetweenBox = (VBox) organizer.lookup("#checkBoxLogicRead").lookup("#ValueBox");
+                if (BetweenBox.getChildren().size() != 1)
+                    ((VBox) organizer.lookup("#checkBoxLogicRead").lookup("#ValueBox")).getChildren().removeFirst();
+            }
+        });
+        Control[] controls = {tb1, tb2, tb3, tb4};
         JavaFxObjectsManager.fillOrganizer(toggles, controls);
         return toggles;
     }
-    private HBox setValueBox() {
-        Label valueLabel = JavaFxObjectsManager.createLabel("Wartosc");
+    private TextField setValueField() {
         TextField valueField = new TextField();
-        Control [] valueControls = {valueLabel, valueField};
-        HBox valueBox = JavaFxObjectsManager.createHBox(4, 4);
-        JavaFxObjectsManager.fillOrganizer(valueBox, valueControls);
-        return valueBox;
+        valueField.setId("Wartosc");
+        return valueField;
     }
     private ListView<String> setColumn() {
         ListView<String> listView = (ListView<String>) organizer.getChildren().getFirst();
