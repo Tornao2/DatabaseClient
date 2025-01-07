@@ -82,4 +82,3 @@ public class Client extends Application {
 //Operacje crud dla tabeli
 //Miec procedure z kursorem
 //Zapytania ze zlaczeniami, moga byc jako joiny jako widoki
-//Wykorzystac operatory grupujace i agregujace

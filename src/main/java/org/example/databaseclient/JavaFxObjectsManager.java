@@ -60,16 +60,25 @@ public class JavaFxObjectsManager {
         returnObj.setWrapText(true);
         return returnObj;
     }
-    static public TableView<ObservableList<String>> createTableView(ArrayList<String> columnNames){
+    static public TableView<ObservableList<String>> createTableView(ArrayList<String> data){
         TableView<ObservableList<String>> returnObj = new TableView<>();
-        for(int i = 0; i < columnNames.size(); i++) {
-            TableColumn<ObservableList<String>, String> col = new TableColumn<>(columnNames.get(i));
+        for(int i = 0; i < data.size(); i++) {
+            TableColumn<ObservableList<String>, String> col = new TableColumn<>(data.get(i));
             int finalI = i;
             col.setCellValueFactory(cellData ->
                     new SimpleStringProperty(cellData.getValue().get(finalI))
             );
             returnObj.getColumns().add(col);
         }
+        return returnObj;
+    }
+    static public TableView<ObservableList<String>> createTableView(String data){
+        TableView<ObservableList<String>> returnObj = new TableView<>();
+            TableColumn<ObservableList<String>, String> col = new TableColumn<>(data);
+            col.setCellValueFactory(cellData ->
+                    new SimpleStringProperty(cellData.getValue().getFirst())
+            );
+            returnObj.getColumns().add(col);
         return returnObj;
     }
 }

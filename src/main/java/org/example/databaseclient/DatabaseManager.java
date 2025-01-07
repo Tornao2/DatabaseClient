@@ -81,24 +81,44 @@ public class DatabaseManager {
         return resultMessage;
     }
 
-    public Pair<ResultSet,String> readFromTable(String tableName, ArrayList<Boolean>data, ArrayList<String> compareData){
+    public Pair<ResultSet,String> readFromTable(String tableName, ArrayList<?>data, ArrayList<String> compareData, String groupColumn){
         StringBuilder values = new StringBuilder();
-        ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
         String resultMessage = "";
-        for (int i = 0; i < data.size(); i++) {
-            values.append(listOfColumns.get(i).getKey());
-            if (i < data.size() - 1)
-                values.append(", ");
-        }
+        if(compareData != null && !compareData.isEmpty()) {
+            if (compareData.getFirst().equals("Columns")) {
+                ArrayList<Boolean> dataReal = (ArrayList<Boolean>) data;
+                ArrayList<Pair<String, Integer>> listOfColumns = getColumnNames(tableName);
+                for (int i = 0; i < dataReal.size(); i++) {
+                    if (dataReal.get(i)) {
+                        values.append(listOfColumns.get(i).getKey());
+                        values.append(", ");
+                    }
+                }
+                if(!values.isEmpty())
+                    values.delete(values.length() - 2, values.length());
+            } else if (compareData.getFirst().equals("Agg")){
+                ArrayList<String> dataReal = (ArrayList<String>) data;
+                values.append(dataReal.getFirst());
+                if (groupColumn != null)
+                    values.append(", ").append(groupColumn);
+            } else
+            values.append(groupColumn);
+        } else
+            values.append(groupColumn);
         String sqlStatement = "SELECT " + values + " FROM " + tableName;
-        if (compareData != null) {
+        if (compareData!= null && !compareData.isEmpty() && compareData.size() != 1) {
             boolean check = true;
             for (String compareDatum : compareData)
-                if (compareDatum == null)
+                if (compareDatum == null) {
                     check = false;
+                    break;
+                }
             if (check)
                 sqlStatement = compareDataModify(sqlStatement, compareData, tableName);
         }
+        if(groupColumn!= null)
+            sqlStatement = sqlStatement.concat(" GROUP BY " + groupColumn);
+        System.out.println(sqlStatement);
         ResultSet rowsQueried;
         try {
             PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
@@ -112,11 +132,11 @@ public class DatabaseManager {
     }
     private String compareDataModify(String sqlStatement, ArrayList<String> compareData, String tableName) {
         ArrayList <Pair<String,Integer>> listOfColumns = getColumnNames(tableName);
-        sqlStatement = sqlStatement.concat(" WHERE ").concat(compareData.get(1));
-        String type = switch (compareData.get(0)) {
+        sqlStatement = sqlStatement.concat(" WHERE ").concat(compareData.get(2));
+        String type = switch (compareData.get(1)) {
             case "Equal" -> " = ";
-            case "Lower" -> " > ";
-            case "Higher" -> " < ";
+            case "Lower" -> " < ";
+            case "Higher" -> " > ";
             case "Between" -> " BETWEEN ";
             default -> "";
         };
@@ -124,21 +144,21 @@ public class DatabaseManager {
         ArrayList<Pair<String, Integer>> columns = getColumnNames(tableName);
         int num = 0;
         for (int i = 0; i < columns.size(); i++) {
-                if(columns.get(i).getKey().equals(compareData.get(1)))
+                if(columns.get(i).getKey().equals(compareData.get(2)))
                     num = i;
         }
         switch (listOfColumns.get(num).getValue()){
                 case 2:
-                    sqlStatement = sqlStatement.concat(compareData.get(2));
+                    sqlStatement = sqlStatement.concat(compareData.get(3));
                     if (type.equals(" BETWEEN "))
-                        sqlStatement = sqlStatement.concat(" AND ").concat(compareData.get(3));
+                        sqlStatement = sqlStatement.concat(" AND ").concat(compareData.get(4));
                     break;
                 case 1:
                 case 12:
                 case 93:
-                    sqlStatement = sqlStatement.concat("'").concat(compareData.get(2)).concat("'");
+                    sqlStatement = sqlStatement.concat("'").concat(compareData.get(3)).concat("'");
                     if (type.equals(" BETWEEN "))
-                        sqlStatement = sqlStatement.concat(" AND ").concat("'").concat(compareData.get(3)).concat("'");
+                        sqlStatement = sqlStatement.concat(" AND ").concat("'").concat(compareData.get(4)).concat("'");
                     break;
                 default:
                     break;

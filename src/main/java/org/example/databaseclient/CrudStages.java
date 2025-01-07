@@ -4,6 +4,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 
@@ -144,30 +147,58 @@ public class CrudStages {
         ArrayList<Pair<String, Integer>> columns = DBmanager.getColumnNames(selectedTable);
         if (organizer.getChildren().size() > 1)
             organizer.getChildren().subList(1, organizer.getChildren().size()).clear();
+        CheckBox additionalOptions = new CheckBox("Funkcje agregujace");
+        additionalOptions.setId("Options");
+        additionalOptions.selectedProperty().addListener(new AdditionalReadAgg(organizer, DBmanager));
+        JavaFxObjectsManager.fillOrganizer(organizer, additionalOptions);
+        VBox columnGroup = JavaFxObjectsManager.createVBox(4, 4);
+        columnGroup.setId("ColumnsBoxes");
         for(Pair <String, Integer> pair: columns)
-            JavaFxObjectsManager.fillOrganizer(organizer, new CheckBox(pair.getKey()));
-        CheckBox additionalChoice = new CheckBox("Dodatkowy warunek wyboru?");
+            JavaFxObjectsManager.fillOrganizer(columnGroup, new CheckBox(pair.getKey()));
+        JavaFxObjectsManager.fillOrganizer(organizer, columnGroup);
+        CheckBox additionalChoice = new CheckBox("Dodatkowe warunki wyboru");
         additionalChoice.setId("Compare");
-        additionalChoice.selectedProperty().addListener(new ReadCheckBoxListener(organizer, DBmanager));
+        additionalChoice.selectedProperty().addListener(new AdditionalReadWhere(organizer, DBmanager));
         JavaFxObjectsManager.fillOrganizer(organizer, additionalChoice);
+        CheckBox group = new CheckBox("Grupowanie");
+        group.setId("Group");
+        group.selectedProperty().addListener(new AdditionalReadGroup(organizer, DBmanager));
+        JavaFxObjectsManager.fillOrganizer(organizer, group);
         finishDisplaying("Read from table", this::sendReadStatement);
     }
     private void sendReadStatement(){
         if (organizer.getChildren().getLast() instanceof TableView<?>)
             organizer.getChildren().removeLast();
-        ArrayList<Boolean> checkedColumns = new ArrayList<>();
-        organizer.getChildren().forEach(node -> {
-            if (node instanceof CheckBox && node.getId() == null)
-                checkedColumns.add(((CheckBox) node).isSelected());
-        });
-        ListView<String> listView = (ListView<String>) organizer.getChildren().getFirst();
+        CheckBox isAgg = (CheckBox) (organizer.lookup("#Options"));
         CheckBox checkCompare =  (CheckBox) organizer.lookup("#Compare");
-        ArrayList<String> compareData = null;
+        ArrayList<String> compareData = new ArrayList<>();
+        ArrayList<?> data = null;
+        CheckBox groupCheck = (CheckBox) organizer.lookup("#Group");
+        String groupData = null;
         if (checkCompare.isSelected())
             compareData = getCompareData();
-        Pair <ResultSet, String> results = DBmanager.readFromTable(listView.getSelectionModel().getSelectedItem(), checkedColumns,  compareData);
+        if (isAgg.isSelected()){
+            compareData.addFirst("Agg");
+            data = getOptionsData();
+        }
+        if (groupCheck.isSelected()) {
+            groupData = getGroupData();
+            if (compareData.isEmpty())
+                compareData.add("Group");
+        }
+        if(!groupCheck.isSelected() && !isAgg.isSelected()) {
+            compareData.addFirst("Columns");
+            ArrayList<Boolean> checkedColumns = new ArrayList<>();
+            ((VBox) organizer.lookup("#ColumnsBoxes")).getChildren().forEach(node -> {
+                if (node instanceof CheckBox && node.getId() == null)
+                    checkedColumns.add(((CheckBox) node).isSelected());
+            });
+            data = checkedColumns;
+        }
+        ListView<String> listView = (ListView<String>) organizer.getChildren().getFirst();
+        Pair <ResultSet, String> results = DBmanager.readFromTable(listView.getSelectionModel().getSelectedItem(), data, compareData, groupData);
         finishSendingStatements(results.getValue());
-        createReadTable(listView, checkedColumns, results);
+        createReadTable(listView, data, results, groupData);
     }
     private ArrayList <String> getCompareData(){
         ArrayList<String> returnData = new ArrayList<>();
@@ -196,27 +227,105 @@ public class CrudStages {
         returnData.add(valueField.getText());
         return returnData;
     }
-    private void createReadTable(ListView<String> columnList, ArrayList<Boolean> usedColumns, Pair <ResultSet, String> resultFromRead) {
+    private ArrayList<String> getOptionsData() {
+        ArrayList <String> returnData = new ArrayList<>();
+        ToggleButton countCheck =
+                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Count");
+        ToggleButton minCheck =
+                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Min");
+        ToggleButton maxCheck =
+                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Max");
+        ToggleButton avgCheck =
+                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Avg");
+        ToggleButton sumCheck =
+                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Sum");
+        if(countCheck.isSelected())
+            returnData.add("Count(");
+        else if(minCheck.isSelected())
+            returnData.add("Min(");
+        else if(maxCheck.isSelected())
+            returnData.add("Max(");
+        else if(avgCheck.isSelected())
+            returnData.add("Avg(");
+        else if(sumCheck.isSelected())
+            returnData.add("Sum(");
+        ListView<String> columnChoice = (ListView<String>) organizer.lookup("#checkBoxOptionsRead").lookup("#ColumnChoice");
+        if (columnChoice != null)
+            returnData.set(0,returnData.getFirst().concat(columnChoice.getSelectionModel().getSelectedItem() + ")"));
+        else
+            returnData.set(0,returnData.getFirst().concat("*)"));
+        return returnData;
+    }
+    private String getGroupData() {
+        ListView<String> columnChoice = (ListView<String>) organizer.lookup("#checkBoxGroupRead").lookup("#ColumnChoice");
+        return columnChoice.getSelectionModel().getSelectedItem();
+    }
+    private void createReadTable(ListView<String> columnList, ArrayList<?> data, Pair <ResultSet, String> resultFromRead, String groupName) {
         ArrayList<Pair<String, Integer>> columnNames = DBmanager.getColumnNames(columnList.getSelectionModel().getSelectedItem());
         ArrayList<String> finishedColumnNames = new ArrayList<>();
-        for(int i = 0; i < columnNames.size(); i++)
-            if (usedColumns.get(i)) finishedColumnNames.add(columnNames.get(i).getKey());
-        TableView<ObservableList<String>> resultsTable = JavaFxObjectsManager.createTableView(finishedColumnNames);
+        CheckBox isAgg = (CheckBox) (organizer.lookup("#Options"));
+        TableView<ObservableList<String>> resultsTable;
         ObservableList<ObservableList<String>> allRows = FXCollections.observableArrayList();
-        if (resultFromRead.getKey() != null) {
-            while (true) {
-                try {
-                    if (!resultFromRead.getKey().next()) break;
-                    ObservableList<String> row = FXCollections.observableArrayList();
-                    for (int i = 0; i < resultsTable.getColumns().size(); i++)
-                        row.add(resultFromRead.getKey().getString(finishedColumnNames.get(i)));
-                    allRows.add(row);
-                } catch (SQLException e) {
-                    System.err.println("Nie udalo sie pobrac wynikow: " + e.getMessage());
+        if (isAgg.isSelected()) {
+            ArrayList<String> optionsData = (ArrayList<String>) data;
+            ArrayList<String> createTableData = new ArrayList<>();
+            createTableData.add(optionsData.getFirst());
+            if (groupName != null)
+                createTableData.add(groupName);
+            resultsTable = JavaFxObjectsManager.createTableView(createTableData);
+            if (resultFromRead.getKey() != null) {
+                while (true) {
+                    try {
+                        if (!resultFromRead.getKey().next()) break;
+                        ObservableList<String> row = FXCollections.observableArrayList();
+                        row.add(resultFromRead.getKey().getString(createTableData.getFirst()));
+                        if(groupName != null)
+                            row.add(resultFromRead.getKey().getString(createTableData.get(1)));
+                        allRows.add(row);
+                    } catch (SQLException e) {
+                        System.err.println("Nie udalo sie pobrac wynikow: " + e.getMessage());
+                    }
                 }
+                resultsTable.setItems(allRows);
+                JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
             }
-            resultsTable.setItems(allRows);
-            JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
+        } else if (groupName != null){
+            resultsTable = JavaFxObjectsManager.createTableView(groupName);
+            if (resultFromRead.getKey() != null) {
+                while (true) {
+                    try {
+                        if (!resultFromRead.getKey().next()) break;
+                        ObservableList<String> row = FXCollections.observableArrayList();
+                        row.add(resultFromRead.getKey().getString(groupName));
+                        allRows.add(row);
+                    } catch (SQLException e) {
+                        System.err.println("Nie udalo sie pobrac wynikow: " + e.getMessage());
+                    }
+                }
+                resultsTable.setItems(allRows);
+                JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
+            }
+        }
+        else {
+            ArrayList<Boolean> checkedColumns = (ArrayList<Boolean>) data;
+            for (int i = 0; i < columnNames.size(); i++)
+                if (checkedColumns.get(i)) finishedColumnNames.add(columnNames.get(i).getKey());
+            resultsTable = JavaFxObjectsManager.createTableView(finishedColumnNames);
+            if (resultFromRead.getKey() != null) {
+                while (true) {
+                    try {
+                        if (!resultFromRead.getKey().next()) break;
+                        ObservableList<String> row = FXCollections.observableArrayList();
+                        for (int i = 0; i < resultsTable.getColumns().size(); i++)
+                            row.add(resultFromRead.getKey().getString(finishedColumnNames.get(i)));
+                        allRows.add(row);
+                    } catch (SQLException e) {
+                        System.err.println("Nie udalo sie pobrac wynikow: " + e.getMessage());
+                    }
+                }
+                resultsTable.setItems(allRows);
+                JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
+            }
         }
     }
 }

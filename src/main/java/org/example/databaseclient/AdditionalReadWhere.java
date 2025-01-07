@@ -10,10 +10,10 @@ import javafx.util.Pair;
 
 import java.util.ArrayList;
 
-public class ReadCheckBoxListener implements ChangeListener<Boolean>{
+public class AdditionalReadWhere implements ChangeListener<Boolean>{
     private final Pane organizer;
     private final DatabaseManager DBManager;
-    ReadCheckBoxListener(Pane readOrganizer, DatabaseManager readManager) {
+    AdditionalReadWhere(Pane readOrganizer, DatabaseManager readManager) {
         organizer = readOrganizer;
         DBManager = readManager;
     }
@@ -30,7 +30,7 @@ public class ReadCheckBoxListener implements ChangeListener<Boolean>{
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
             listOfColumns.setPrefHeight(60);
-            int id = organizer.getChildren().indexOf((organizer.lookup("#ActionButton")));
+            int id = organizer.getChildren().indexOf((organizer.lookup("#Compare")))+1;
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
