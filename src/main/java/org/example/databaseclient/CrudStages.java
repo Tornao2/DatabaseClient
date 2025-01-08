@@ -229,31 +229,20 @@ public class CrudStages {
     }
     private ArrayList<String> getOptionsData() {
         ArrayList <String> returnData = new ArrayList<>();
-        ToggleButton countCheck =
-                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Count");
-        ToggleButton minCheck =
-                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Min");
-        ToggleButton maxCheck =
-                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Max");
-        ToggleButton avgCheck =
-                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Avg");
-        ToggleButton sumCheck =
-                (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Sum");
-        if(countCheck.isSelected())
-            returnData.add("Count(");
-        else if(minCheck.isSelected())
-            returnData.add("Min(");
-        else if(maxCheck.isSelected())
-            returnData.add("Max(");
-        else if(avgCheck.isSelected())
-            returnData.add("Avg(");
-        else if(sumCheck.isSelected())
-            returnData.add("Sum(");
+        ToggleButton countCheck = (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Count");
+        ToggleButton minCheck = (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Min");
+        ToggleButton maxCheck = (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Max");
+        ToggleButton avgCheck = (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Avg");
+        ToggleButton sumCheck = (ToggleButton) organizer.lookup("#checkBoxOptionsRead").lookup("#Toggles").lookup("#Sum");
+        if(countCheck.isSelected()) returnData.add("Count(");
+        else if(minCheck.isSelected()) returnData.add("Min(");
+        else if(maxCheck.isSelected()) returnData.add("Max(");
+        else if(avgCheck.isSelected()) returnData.add("Avg(");
+        else if(sumCheck.isSelected()) returnData.add("Sum(");
         ListView<String> columnChoice = (ListView<String>) organizer.lookup("#checkBoxOptionsRead").lookup("#ColumnChoice");
         if (columnChoice != null)
             returnData.set(0,returnData.getFirst().concat(columnChoice.getSelectionModel().getSelectedItem() + ")"));
-        else
-            returnData.set(0,returnData.getFirst().concat("*)"));
+        else returnData.set(0,returnData.getFirst().concat("*)"));
         return returnData;
     }
     private String getGroupData() {
@@ -270,8 +259,7 @@ public class CrudStages {
             ArrayList<String> optionsData = (ArrayList<String>) data;
             ArrayList<String> createTableData = new ArrayList<>();
             createTableData.add(optionsData.getFirst());
-            if (groupName != null)
-                createTableData.add(groupName);
+            if (groupName != null) createTableData.add(groupName);
             resultsTable = JavaFxObjectsManager.createTableView(createTableData);
             if (resultFromRead.getKey() != null) {
                 while (true) {
@@ -279,8 +267,7 @@ public class CrudStages {
                         if (!resultFromRead.getKey().next()) break;
                         ObservableList<String> row = FXCollections.observableArrayList();
                         row.add(resultFromRead.getKey().getString(createTableData.getFirst()));
-                        if(groupName != null)
-                            row.add(resultFromRead.getKey().getString(createTableData.get(1)));
+                        if(groupName != null) row.add(resultFromRead.getKey().getString(createTableData.get(1)));
                         allRows.add(row);
                     } catch (SQLException e) {
                         System.err.println("Nie udalo sie pobrac wynikow: " + e.getMessage());
@@ -306,7 +293,7 @@ public class CrudStages {
                 JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
             }
         }
-        else {
+        else if (data != null){
             ArrayList<Boolean> checkedColumns = (ArrayList<Boolean>) data;
             for (int i = 0; i < columnNames.size(); i++)
                 if (checkedColumns.get(i)) finishedColumnNames.add(columnNames.get(i).getKey());

@@ -9,14 +9,11 @@ import java.util.ArrayList;
 public class DatabaseManager {
     private Connection DBConnection;
     private DatabaseMetaData metaData;
-    private final String username = "C##CLIENT";
+    String username;
 
-    public void setUpConnection () throws SQLException {
-        DBConnection = DriverManager.getConnection(
-                "jdbc:oracle:thin:@localhost:1521:XE",
-                username,
-                "projekt"
-        );
+    public void setUpConnection (String url, String name, String password) throws SQLException {
+        DBConnection = DriverManager.getConnection(url, name, password);
+        username = name;
         metaData = DBConnection.getMetaData();
     }
     public ResultSet getTables() {
@@ -57,6 +54,8 @@ public class DatabaseManager {
             for (int i = 0; i < data.size(); i++) {
                 switch (listOfColumns.get(i).getValue()){
                     case 2:
+                        if (data.get(i).isEmpty())
+                            data.set(i, "0");
                         statement.setInt(i + 1, Integer.parseInt(data.get(i)));
                         break;
                     case 1:
@@ -88,12 +87,11 @@ public class DatabaseManager {
             if (compareData.getFirst().equals("Columns")) {
                 ArrayList<Boolean> dataReal = (ArrayList<Boolean>) data;
                 ArrayList<Pair<String, Integer>> listOfColumns = getColumnNames(tableName);
-                for (int i = 0; i < dataReal.size(); i++) {
+                for (int i = 0; i < dataReal.size(); i++)
                     if (dataReal.get(i)) {
                         values.append(listOfColumns.get(i).getKey());
                         values.append(", ");
                     }
-                }
                 if(!values.isEmpty())
                     values.delete(values.length() - 2, values.length());
             } else if (compareData.getFirst().equals("Agg")){
@@ -102,11 +100,11 @@ public class DatabaseManager {
                 if (groupColumn != null)
                     values.append(", ").append(groupColumn);
             } else
-            values.append(groupColumn);
+                values.append(groupColumn);
         } else
             values.append(groupColumn);
         String sqlStatement = "SELECT " + values + " FROM " + tableName;
-        if (compareData!= null && !compareData.isEmpty() && compareData.size() != 1) {
+        if (compareData != null && !compareData.isEmpty() && compareData.size() != 1) {
             boolean check = true;
             for (String compareDatum : compareData)
                 if (compareDatum == null) {
@@ -118,7 +116,6 @@ public class DatabaseManager {
         }
         if(groupColumn!= null)
             sqlStatement = sqlStatement.concat(" GROUP BY " + groupColumn);
-        System.out.println(sqlStatement);
         ResultSet rowsQueried;
         try {
             PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
@@ -143,10 +140,9 @@ public class DatabaseManager {
         sqlStatement = sqlStatement.concat(type);
         ArrayList<Pair<String, Integer>> columns = getColumnNames(tableName);
         int num = 0;
-        for (int i = 0; i < columns.size(); i++) {
+        for (int i = 0; i < columns.size(); i++)
                 if(columns.get(i).getKey().equals(compareData.get(2)))
                     num = i;
-        }
         switch (listOfColumns.get(num).getValue()){
                 case 2:
                     sqlStatement = sqlStatement.concat(compareData.get(3));
@@ -164,5 +160,13 @@ public class DatabaseManager {
                     break;
         }
         return sqlStatement;
+    }
+
+    public void closeConnection() {
+        try {
+            DBConnection.close();
+        } catch (SQLException e) {
+            System.err.println("Nie udalo sie rozlaczenie z baza" + e.getMessage());
+        }
     }
 }
