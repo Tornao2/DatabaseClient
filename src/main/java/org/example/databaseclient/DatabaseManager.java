@@ -162,6 +162,26 @@ public class DatabaseManager {
         return sqlStatement;
     }
 
+    public String deleteFromTable(String tableName, ArrayList<String>data){
+        StringBuilder values = new StringBuilder();
+        String resultMessage;
+        if (!data.getFirst().equals("Table")){
+            values.append(" WHERE ").append(data.get(1));
+
+        }
+        String sqlStatement = "DELETE FROM " + tableName + values;
+        System.out.println(sqlStatement);
+        try {
+            PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
+            int rowsDeleted = statement.executeUpdate();
+            resultMessage = "Deleted " + rowsDeleted + " rows";
+        } catch (SQLException e) {
+            System.err.println("Blad podczas read: " + e.getMessage());
+            resultMessage = e.getMessage();
+        }
+        return resultMessage;
+    }
+
     public void closeConnection() {
         try {
             DBConnection.close();

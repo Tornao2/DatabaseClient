@@ -1,5 +1,6 @@
 package org.example.databaseclient;
 
+import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -7,6 +8,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 
@@ -42,6 +44,7 @@ public class CrudStages {
     }
     public VBox deleteStage() {
         organizer = sharedSetUp();
+        organizer.getChildren().getFirst().setOnMousePressed(_ -> displayColumnsForDelete());
         return organizer;
     }
 
@@ -314,5 +317,37 @@ public class CrudStages {
                 JavaFxObjectsManager.fillOrganizer(organizer, resultsTable);
             }
         }
+    }
+
+    private void displayColumnsForDelete(){
+        if (organizer.lookup("#box") == null) {
+            HBox box = JavaFxObjectsManager.createHBox(4, 4);
+            box.setId("box");
+            ToggleGroup specialToggleGroup = new ToggleGroup();
+            ToggleButton special1 = new ToggleButton("Whole table");
+            special1.setId("table");
+            special1.setToggleGroup(specialToggleGroup);
+            ToggleButton special2 = new ToggleButton("Certain rows");
+            special2.setId("rows");
+            special2.setToggleGroup(specialToggleGroup);
+            special1.setSelected(true);
+            Control[] toggles = {special1, special2};
+            JavaFxObjectsManager.fillOrganizer(box, toggles);
+            JavaFxObjectsManager.fillOrganizer(organizer, box);
+            specialToggleGroup.selectedToggleProperty().addListener(new AdditionalDeleteColumns(organizer, DBmanager));
+            finishDisplaying("Delete from table", this::sendDeleteStatement);
+        }
+    }
+    private void sendDeleteStatement(){
+        ToggleButton special1 = ((ToggleButton) organizer.lookup("#box").lookup("#table"));
+        ArrayList<String> data = new ArrayList<>();
+        String tableName = (((ListView<String>) organizer.getChildren().getFirst()).getSelectionModel().getSelectedItem());
+        if (special1.isSelected())  data.add("Table");
+        else {
+            data.add("Columns");
+            data.add(((ListView<String>) organizer.lookup("#whereDelete").lookup("#ColumnChoice")).getSelectionModel().getSelectedItem());
+        }
+        String resultMessage = DBmanager.deleteFromTable(tableName, data);
+        finishSendingStatements(resultMessage);
     }
 }
