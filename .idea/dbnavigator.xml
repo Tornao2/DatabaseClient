@@ -17,22 +17,92 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[DELETE FROM bilety when 1 = 1;
-DELETE FROM filmy when 1 = 1;
-DELETE FROM kina when 1 = 1;
-DELETE FROM konta when 1 = 1;
-DELETE FROM miejsca when 1 = 1;
-DELETE FROM oceny when 1 = 1;
-DELETE FROM PRACOWNICY when 1 = 1;
-DELETE FROM SALE when 1 = 1;
-DELETE FROM SEANSE when 1 = 1;]]></console>
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[CREATE TABLE kina (
+id INT PRIMARY KEY,
+miasto VARCHAR(100) NOT NULL,
+pseudonim VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE pracownicy (
+pesel CHAR(11) PRIMARY KEY,
+kontoBankowe INT NOT NULL,
+pensja INT NOT NULL,
+imie VARCHAR(50),
+nazwisko VARCHAR(50),
+stanowisko VARCHAR(50),
+dataZatrudnienia DATE NOT NULL,
+kina_id INT,
+FOREIGN KEY (kina_id) REFERENCES kina(id)
+);
+
+CREATE TABLE sale (
+id INT PRIMARY KEY,
+numerSali INT,
+kina_id INT,
+FOREIGN KEY (kina_id) REFERENCES kina(id)
+);
+
+CREATE TABLE miejsca (
+id INT PRIMARY KEY,
+kolumna INT NOT NULL,
+rzad INT NOT NULL,
+stan VARCHAR(50) NOT NULL,
+sala_id INT,
+FOREIGN KEY (sala_id) REFERENCES sale(id)
+);
+
+CREATE TABLE filmy (
+id INT PRIMARY KEY,
+tytulFilmu VARCHAR(255) NOT NULL,
+rezyser VARCHAR(100),
+dlugosc INT NOT NULL,
+rokProdukcji INT
+);
+
+CREATE TABLE seanse (
+id INT PRIMARY KEY,
+data DATE NOT NULL,
+filmy_id INT,
+sala_id INT,
+FOREIGN KEY (filmy_id) REFERENCES filmy(id),
+FOREIGN KEY (sala_id) REFERENCES sale(id)
+);
+
+CREATE TABLE konta (
+email VARCHAR(255) PRIMARY KEY,
+login VARCHAR(50) UNIQUE,
+haslo VARCHAR(50)
+);
+
+CREATE TABLE oceny (
+id INT PRIMARY KEY,
+ocena INT NOT NULL,
+komentarz VARCHAR(1024),
+konta_email VARCHAR(255),
+filmy_id INT,
+FOREIGN KEY (filmy_id) REFERENCES filmy(id),
+FOREIGN KEY (konta_email) REFERENCES konta(email)
+);
+
+CREATE TABLE bilety (
+id INT PRIMARY KEY,
+cena INT NOT NULL,
+konta_email VARCHAR(255),
+seanse_id INT,
+miejsca_id INT,
+FOREIGN KEY (konta_email) REFERENCES klienci(email),
+FOREIGN KEY (seanse_id) REFERENCES seanse(id),
+FOREIGN KEY (miejsca_id) REFERENCES miejsca(id)
+);]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files />
+    <open-files>
+      <object connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" object-ref="consoles/MyData" />
+    </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0" />
@@ -49,6 +119,9 @@ DELETE FROM SEANSE when 1 = 1;]]></console>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
     <filters />
+  </component>
+  <component name="DBNavigator.Project.ScriptExecutionManager" clear-outputs="true">
+    <recently-used-interfaces />
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
@@ -95,7 +168,7 @@ DELETE FROM SEANSE when 1 = 1;]]></console>
           <charset value="UTF-8" />
           <session-management value="true" />
           <ddl-file-binding value="true" />
-          <database-logging value="true" />
+          <database-logging value="false" />
           <connect-automatically value="true" />
           <restore-workspace value="true" />
           <restore-workspace-deep value="false" />

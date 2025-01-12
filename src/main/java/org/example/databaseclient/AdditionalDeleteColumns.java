@@ -21,7 +21,7 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
     @Override
     public void changed(ObservableValue<? extends Toggle> observableValue, Toggle toggle, Toggle t1) {
         ToggleButton newSelect = (ToggleButton) t1;
-        if (newSelect.getText().equals("Whole table")){
+        if (newSelect.getText().equals("Cala tabela")){
             organizer.getChildren().remove((organizer.lookup("#whereDelete")));
         } else {
             VBox overallOrganizer = JavaFxObjectsManager.createVBox(4, 4);
@@ -33,7 +33,7 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
             VBox overallValueBox = JavaFxObjectsManager.createVBox(4, 4);
             overallValueBox.setId("ValueBox");
             overallValueBox.getChildren().add(valueField);
-            listOfColumns.setPrefHeight(60);
+            listOfColumns.setPrefHeight(40);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);
@@ -57,10 +57,10 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
             tb1.setId("Equal");
             tb1.setToggleGroup(toggleGroup);
             tb1.setSelected(true);
-            ToggleButton tb2 = new ToggleButton("Mniejszy");
+            ToggleButton tb2 = new ToggleButton("Mniejszy od");
             tb2.setId("Lower");
             tb2.setToggleGroup(toggleGroup);
-            ToggleButton tb3 = new ToggleButton("Wiekszy");
+            ToggleButton tb3 = new ToggleButton("Wiekszy od");
             tb3.setId("Higher");
             tb3.setToggleGroup(toggleGroup);
             ToggleButton tb4 = new ToggleButton("Pomiedzy");
@@ -70,10 +70,10 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
                 if (newValue == tb4) {
                     VBox BetweenBox = JavaFxObjectsManager.createVBox(4, 4);
                     BetweenBox.setId("BetweenBox");
-                    Label moreLabel = new Label("Wiecej niz: ");
+                    Label moreLabel = new Label("Mniej niz: ");
                     TextField valueField = new TextField();
-                    valueField.setId("Dodatkowa");
-                    Label lessLabel = new Label("mniej niz: ");
+                    valueField.setId("SecondValue");
+                    Label lessLabel = new Label("Wiecej niz: ");
                     Control[] temp = {moreLabel, valueField, lessLabel};
                     JavaFxObjectsManager.fillOrganizer(BetweenBox, temp);
                     ((VBox) organizer.lookup("#whereDelete").lookup("#ValueBox")).getChildren().addFirst(BetweenBox);
@@ -89,7 +89,7 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
     }
     private TextField setValueField() {
         TextField valueField = new TextField();
-        valueField.setId("Wartosc");
+        valueField.setId("Value");
         return valueField;
     }
 }

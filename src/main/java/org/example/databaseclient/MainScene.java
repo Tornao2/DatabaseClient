@@ -22,10 +22,10 @@ public class MainScene {
     }
 
     private Button[] setUpCrudButtons() {
-        Button insertButton = JavaFxObjectsManager.createButton("Insert Data", this::setInsertStage);
-        Button readButton = JavaFxObjectsManager.createButton("Read Data", this::setReadStage);
-        Button updateButton = JavaFxObjectsManager.createButton("Update Data", this::setUpdateStage);
-        Button deleteButton = JavaFxObjectsManager.createButton("Delete Data", this::setDeleteStage);
+        Button insertButton = JavaFxObjectsManager.createButton("Wprowadz", this::setInsertStage);
+        Button readButton = JavaFxObjectsManager.createButton("Czytaj", this::setReadStage);
+        Button updateButton = JavaFxObjectsManager.createButton("Zaaktualizuj", this::setUpdateStage);
+        Button deleteButton = JavaFxObjectsManager.createButton("Usun", this::setDeleteStage);
         return new Button[]{insertButton, readButton, updateButton, deleteButton};
     }
     private VBox setUpCrudMenus() {
@@ -56,7 +56,7 @@ public class MainScene {
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.deleteStage());
     }
     private void setDisconnectButton(VBox organizer) {
-        Button disconnectButton = JavaFxObjectsManager.createButton("Disconnect", this::disconnect);
+        Button disconnectButton = JavaFxObjectsManager.createButton("Rozlacz", this::disconnect);
         JavaFxObjectsManager.fillOrganizer(organizer, disconnectButton);
     }
 

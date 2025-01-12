@@ -25,7 +25,7 @@ public class AdditionalReadGroup implements ChangeListener<Boolean>  {
             overallOrganizer.setId("checkBoxGroupRead");
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
-            listOfColumns.setPrefHeight(60);
+            listOfColumns.setPrefHeight(40);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             int id = organizer.getChildren().indexOf((organizer.lookup("#ActionButton")));
             organizer.getChildren().add(id, overallOrganizer);

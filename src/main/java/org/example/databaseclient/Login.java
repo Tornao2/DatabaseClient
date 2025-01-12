@@ -26,7 +26,7 @@ public class Login {
         Label passwordLabel = JavaFxObjectsManager.createLabel("haslo uzytkownika");
         TextField password = new TextField("projekt");
         password.setId("password");
-        Button testConnection = JavaFxObjectsManager.createButton("Try to connect", this::testConnection);
+        Button testConnection = JavaFxObjectsManager.createButton("Sprobuj polaczyc", this::testConnection);
         debugLabel = JavaFxObjectsManager.createLabel("");
         Control[] controls = {urlLabel, url, loginLabel, login, passwordLabel, password,testConnection, debugLabel};
         manager =  JavaFxObjectsManager.createVBox(4, 4);
@@ -43,7 +43,7 @@ public class Login {
             DBmanager.setUpConnection(url, login, password);
             nextFunction.run();
         } catch (SQLException e) {
-            System.err.println("Nie polaczono z baza danych " + e.getMessage());
+            System.err.println("Couldn't connect " + e.getMessage());
             debugLabel.setText(e.getMessage());
         }
     }

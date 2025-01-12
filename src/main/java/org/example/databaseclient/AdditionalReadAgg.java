@@ -27,7 +27,7 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
-            listOfColumns.setPrefHeight(60);
+            listOfColumns.setPrefHeight(40);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             int id = organizer.getChildren().indexOf((organizer.lookup("#Options")));
             organizer.getChildren().add(id+1, overallOrganizer);
@@ -51,10 +51,10 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
         ToggleGroup toggleGroup = new ToggleGroup();
         HBox toggles = JavaFxObjectsManager.createHBox(4, 4);
         toggles.setId("Toggles");
-        ToggleButton tb1 = new ToggleButton("Count");
+        ToggleButton tb1 = new ToggleButton("Policz");
         tb1.setId("Count");
         tb1.setToggleGroup(toggleGroup);
-        ToggleButton tb2 = new ToggleButton("Avg");
+        ToggleButton tb2 = new ToggleButton("Srednia");
         tb2.setId("Avg");
         tb2.setToggleGroup(toggleGroup);
         ToggleButton tb3 = new ToggleButton("Min");
@@ -63,7 +63,7 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
         ToggleButton tb4 = new ToggleButton("Max");
         tb4.setId("Max");
         tb4.setToggleGroup(toggleGroup);
-        ToggleButton tb5 = new ToggleButton("Sum");
+        ToggleButton tb5 = new ToggleButton("Suma");
         tb5.setId("Sum");
         tb5.setToggleGroup(toggleGroup);
         tb5.setSelected(true);
@@ -72,10 +72,10 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
                 HBox BetweenBox = JavaFxObjectsManager.createHBox(4, 4);
                 ToggleGroup specialToggleGroup = new ToggleGroup();
                 ToggleButton special1 = new ToggleButton("Table");
-                special1.setId("Table");
+                special1.setId("Tabela");
                 special1.setToggleGroup(specialToggleGroup);
                 ToggleButton special2 = new ToggleButton("Columns");
-                special2.setId("Columns");
+                special2.setId("Kolumny");
                 special2.setToggleGroup(specialToggleGroup);
                 special2.setSelected(true);
                 BetweenBox.setId("TableOrColumn");
@@ -88,7 +88,7 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
                     } else {
                         ListView <String> listOfColumns = setColumn();
                         listOfColumns.setId("ColumnChoice");
-                        listOfColumns.setPrefHeight(60);
+                        listOfColumns.setPrefHeight(40);
                         JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
                     }
                 });
@@ -99,7 +99,7 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
                 if (organizer.lookup("#checkBoxOptionsRead").lookup("#ColumnChoice") == null) {
                     ListView<String> listOfColumns = setColumn();
                     listOfColumns.setId("ColumnChoice");
-                    listOfColumns.setPrefHeight(60);
+                    listOfColumns.setPrefHeight(40);
                     JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
                 }
             }

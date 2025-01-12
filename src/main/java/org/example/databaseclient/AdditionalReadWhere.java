@@ -29,7 +29,7 @@ public class AdditionalReadWhere implements ChangeListener<Boolean>{
             overallValueBox.getChildren().add(valueField);
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
-            listOfColumns.setPrefHeight(60);
+            listOfColumns.setPrefHeight(40);
             int id = organizer.getChildren().indexOf((organizer.lookup("#Compare")))+1;
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);
@@ -59,10 +59,10 @@ public class AdditionalReadWhere implements ChangeListener<Boolean>{
             if (newValue == tb4) {
                 VBox BetweenBox = JavaFxObjectsManager.createVBox(4, 4);
                 BetweenBox.setId("BetweenBox");
-                Label moreLabel = new Label("Wiecej niz: ");
+                Label moreLabel = new Label("Mniej niz: ");
                 TextField valueField = new TextField();
-                valueField.setId("Dodatkowa");
-                Label lessLabel = new Label("mniej niz: ");
+                valueField.setId("SecondValue");
+                Label lessLabel = new Label("Wiecej niz: ");
                 Control [] temp = {moreLabel, valueField, lessLabel};
                 JavaFxObjectsManager.fillOrganizer(BetweenBox, temp);
                 ((VBox) organizer.lookup("#checkBoxLogicRead").lookup("#ValueBox")).getChildren().addFirst(BetweenBox);
@@ -78,7 +78,7 @@ public class AdditionalReadWhere implements ChangeListener<Boolean>{
     }
     private TextField setValueField() {
         TextField valueField = new TextField();
-        valueField.setId("Wartosc");
+        valueField.setId("Value");
         return valueField;
     }
     private ListView<String> setColumn() {
