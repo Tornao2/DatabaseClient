@@ -1,7 +1,9 @@
 package org.example.databaseclient;
 
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -17,7 +19,11 @@ public class MainScene {
         DBmanager = readManager;
         crudStageMenu = new CrudStages(DBmanager);
         setDisconnectButton(crudMenuOrganizer);
-        Scene scene = new Scene(crudMenuOrganizer, 500, 900);
+        ScrollPane scroll = new ScrollPane(crudMenuOrganizer);
+        scroll.setFitToHeight(true);
+        scroll.setFitToWidth(true);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        Scene scene = new Scene(scroll, 500, 900);
         stage.setScene(scene);
     }
 
