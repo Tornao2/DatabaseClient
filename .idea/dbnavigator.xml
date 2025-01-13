@@ -100,15 +100,14 @@ FOREIGN KEY (miejsca_id) REFERENCES miejsca(id)
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" object-ref="consoles/MyData" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.SEANSE" active-filter-id="" />
+    <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.PRACOWNICY" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.FILMY" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.MIEJSCA" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.SALE" active-filter-id="" />

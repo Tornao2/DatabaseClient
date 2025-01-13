@@ -39,7 +39,8 @@ public class CrudStages {
     }
     public VBox updateStage() {
         organizer = sharedSetUp();
-        organizer.getChildren().getFirst().setOnMousePressed(_ -> displayUpdate());
+        ListView<String> listView = (ListView<String>) organizer.getChildren().getFirst();
+        organizer.getChildren().getFirst().setOnMousePressed(_ -> displayUpdate(listView.getSelectionModel().getSelectedItem()));
         return organizer;
     }
     public VBox deleteStage() {
@@ -358,24 +359,76 @@ public class CrudStages {
         finishSendingStatements(resultMessage);
     }
 
-    private void displayUpdate(){
+    private void displayUpdate(String selectedTable){
         if (organizer.getChildren().size() > 1)
             organizer.getChildren().subList(1, organizer.getChildren().size()).clear();
         Label guideLabel = JavaFxObjectsManager.createLabel("Po czym decydowac jakie rzedy aktualizowac");
         ListView <String> deciding = setColumn();
         deciding.setId("Deciding");
         deciding.setPrefHeight(40);
-        deciding.setOnMousePressed(_-> setToggles());
+        deciding.setOnMousePressed(_-> setToggles(selectedTable));
         Control[] controls = {guideLabel, deciding};
         JavaFxObjectsManager.fillOrganizer(organizer, controls);
         finishDisplaying("Zmien", this::sendUpdateStatement);
     }
-    private void setToggles (){
+    private void setToggles (String selectedTable){
         if (organizer.getChildren().size() > 3)
             organizer.getChildren().subList(3, organizer.getChildren().size()-2).clear();
         HBox overallCriteriaBox = JavaFxObjectsManager.createHBox(4, 4);
-        ToggleGroup toggleGroup = new ToggleGroup();
         overallCriteriaBox.setId("Toggles");
+        TextField valField = new TextField();
+        valField.setId("Value");
+        Control [] controls = setTogglesUpdate();
+        JavaFxObjectsManager.fillOrganizer(overallCriteriaBox, controls);
+        int id = organizer.getChildren().indexOf((organizer.lookup("#Deciding")));
+        organizer.getChildren().add(id + 1, overallCriteriaBox);
+        organizer.getChildren().add(id + 2, valField);
+        VBox columnsBox = JavaFxObjectsManager.createVBox(4, 4);
+        columnsBox.setId("columnsBox");
+        ArrayList<Pair<String, Integer>> columns = DBmanager.getColumnNames(selectedTable);
+        for(Pair <String, Integer> pair: columns) {
+            CheckBox tempCheck = new CheckBox(pair.getKey());
+            JavaFxObjectsManager.fillOrganizer(columnsBox, tempCheck);
+            tempCheck.selectedProperty().addListener((_, _, newValue) -> {
+                if (newValue) {
+                    ArrayList<Node> temp = new ArrayList<>();
+                    int type = pair.getValue();
+                    switch (type) {
+                        case 1:
+                        case 2:
+                        case 12:
+                            TextField stringField = new TextField();
+                            temp.add(stringField);
+                            break;
+                        case 93:
+                            DatePicker dateField = new DatePicker();
+                            TextField hourField = new TextField();
+                            temp.add(hourField);
+                            temp.add(dateField);
+                            break;
+                        default:
+                            System.err.println("Can't handle type " + pair.getValue() + " " + pair.getKey());
+                            type = -1;
+                            break;
+                    }
+                    if (type != -1) {
+                        int num = ((VBox) organizer.lookup("#columnsBox")).getChildren().indexOf(tempCheck);
+                        for (Node n: temp)
+                            ((VBox) organizer.lookup("#columnsBox")).getChildren().add(num + 1, n);
+                    }
+                } else {
+                    int num = ((VBox) organizer.lookup("#columnsBox")).getChildren().indexOf(tempCheck);
+                    ((VBox) organizer.lookup("#columnsBox")).getChildren().remove(num + 1);
+                    if (((VBox) organizer.lookup("#columnsBox")).getChildren().size() > num + 1 &&
+                            !(((VBox) organizer.lookup("#columnsBox")).getChildren().get(num + 1) instanceof CheckBox))
+                        ((VBox) organizer.lookup("#columnsBox")).getChildren().remove(num + 1);
+                }
+            });
+        }
+        organizer.getChildren().add(id + 3, columnsBox);
+    }
+    private Control[] setTogglesUpdate() {
+        ToggleGroup toggleGroup = new ToggleGroup();
         ToggleButton tb1 = new ToggleButton("Rowny");
         tb1.setId("Equal");
         tb1.setToggleGroup(toggleGroup);
@@ -389,8 +442,6 @@ public class CrudStages {
         ToggleButton tb4 = new ToggleButton("Pomiedzy");
         tb4.setId("Between");
         tb4.setToggleGroup(toggleGroup);
-        TextField valField = new TextField();
-        valField.setId("Value");
         Control[] controls = {tb1, tb2, tb3, tb4};
         toggleGroup.selectedToggleProperty().addListener((_, _, newValue) -> {
             if (newValue == tb4) {
@@ -410,10 +461,7 @@ public class CrudStages {
                     organizer.getChildren().remove(organizer.lookup("#BetweenBox"));
             }
         });
-        JavaFxObjectsManager.fillOrganizer(overallCriteriaBox, controls);
-        int id = organizer.getChildren().indexOf((organizer.lookup("#Deciding")));
-        organizer.getChildren().add(id + 1, overallCriteriaBox);
-        organizer.getChildren().add(id + 2, valField);
+        return controls;
     }
     private ListView<String> setColumn() {
         ListView<String> listView = (ListView<String>) organizer.getChildren().getFirst();
@@ -440,7 +488,24 @@ public class CrudStages {
             }
             data.add(2, ((TextField)(organizer.lookup("#Value"))).getText());
         }
-        String resultMessage = DBmanager.updateTable(tableName, data);
+        ArrayList<Pair<String, String>> columns = new ArrayList<>();
+        if (organizer.lookup("#columnsBox") != null) {
+            ((VBox) organizer.lookup("#columnsBox")).getChildren().forEach(node -> {
+                if (node instanceof CheckBox && ((CheckBox) node).isSelected()) {
+                    String columnName = ((CheckBox) node).getText();
+                    int id = ((VBox) organizer.lookup("#columnsBox")).getChildren().indexOf(node);
+                    String value;
+                    if (((VBox) organizer.lookup("#columnsBox")).getChildren().get(id + 1) instanceof TextField) {
+                        value = ((TextField) ((VBox) organizer.lookup("#columnsBox")).getChildren().get(id + 1)).getText();
+                    } else {
+                        value = ((DatePicker) ((VBox) organizer.lookup("#columnsBox")).getChildren().get(id + 1)).getValue()
+                                + " " + ((TextField) ((VBox) organizer.lookup("#columnsBox")).getChildren().get(id + 2)).getText();
+                    }
+                    columns.add(new Pair<>(columnName, value));
+                }
+            });
+        }
+        String resultMessage = DBmanager.updateTable(tableName, data, columns);
         finishSendingStatements(resultMessage);
     }
 }

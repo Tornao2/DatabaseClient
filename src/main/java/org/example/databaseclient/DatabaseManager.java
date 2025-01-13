@@ -117,7 +117,6 @@ public class DatabaseManager {
         if(groupColumn!= null)
             sqlStatement = sqlStatement.concat(" GROUP BY " + groupColumn);
         ResultSet rowsQueried;
-        System.out.println(sqlStatement);
         try {
             PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
             rowsQueried = statement.executeQuery();
@@ -194,49 +193,116 @@ public class DatabaseManager {
             readValues.append(" AND ").append(compareData.get(4));
         return readValues;
     }
+
+    public String updateTable(String tableName, ArrayList<String>data, ArrayList<Pair<String, String>> columnData){
+        String resultMessage = "";
+        if (data.size() > 1) {
+            StringBuilder compare = new StringBuilder();
+            StringBuilder columns = new StringBuilder();
+            ArrayList<Pair<String, Integer>> listOfColumns = getColumnNames(tableName);
+            compare = updateCompareSigns(compare, data, tableName);
+            for (int i = 0; i < columnData.size(); i++) {
+                columns.append(columnData.get(i).getKey()).append(" = ");
+                Pair<String, Integer> temp = null;
+                for (Pair<String, Integer> pair : listOfColumns) {
+                    if (pair.getKey().equals(columnData.get(i).getKey())) {
+                        temp = pair;
+                        break;
+                    }
+                }
+                if (temp != null) {
+                    switch (temp.getValue()) {
+                        case 2:
+                            columns.append(columnData.get(i).getValue());
+                            break;
+                        case 1:
+                        case 12:
+                            columns.append("'").append(columnData.get(i).getValue()).append("'");
+                            break;
+                        case 93:
+                            try {
+                                Timestamp timestamp = Timestamp.valueOf(columnData.get(i).getValue());
+                                columns.append("TO_TIMESTAMP('").append(timestamp).append("', 'YYYY-MM-DD HH24:MI:SS.ff')");
+                            } catch(IllegalArgumentException _){
+                                return "Zly format daty (yyyy-mm-dd hh:mm:ss)";
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                if (i < columnData.size() - 1)
+                    columns.append(", ");
+            }
+            String sqlStatement = "UPDATE " + tableName + " SET " + columns + compare;
+            try {
+                PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
+                int rowsDeleted = statement.executeUpdate();
+                resultMessage = "Zmieniono " + rowsDeleted + " rzedow";
+            } catch (SQLException e) {
+                System.err.println("Error during update: " + e.getMessage());
+                resultMessage = e.getMessage();
+            }
+        }
+        return resultMessage;
+    }
+    public StringBuilder updateCompareSigns(StringBuilder readValues, ArrayList<String> compareData, String tableName) {
+        readValues.append(" WHERE " ).append(compareData.get(0));
+        String type = switch (compareData.get(1)) {
+            case "Equal" -> " = ";
+            case "Lower" -> " < ";
+            case "Higher" -> " > ";
+            case "Between" -> " BETWEEN ";
+            default -> "";
+        };
+        readValues.append(type);
+        ArrayList<Pair<String, Integer>> listOfColumns = getColumnNames(tableName);
+        Pair<String, Integer> temp = null;
+        for (Pair<String, Integer> pair : listOfColumns) {
+            if (pair.getKey().equals(compareData.getFirst())) {
+                temp = pair;
+                break;
+            }
+        }
+        if (temp != null) {
+            switch (temp.getValue()) {
+                case 2:
+                    readValues.append(compareData.get(2));
+                    break;
+                case 1:
+                case 93:
+                case 12:
+                    readValues.append("'").append(compareData.get(2)).append("'");
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (type.equals(" BETWEEN ")){
+            readValues.append(" AND ");
+        if (temp != null) {
+            switch (temp.getValue()) {
+                case 2:
+                    readValues.append(compareData.get(3));
+                    break;
+                case 1:
+                case 93:
+                case 12:
+                    readValues.append("'").append(compareData.get(3)).append("'");
+                    break;
+                default:
+                    break;
+            }
+        }
+        }
+        return readValues;
+    }
+
     public void closeConnection() {
         try {
             DBConnection.close();
         } catch (SQLException e) {
             System.err.println("Couldn't disconnect " + e.getMessage());
         }
-    }
-
-    public String updateTable(String tableName, ArrayList<String>data){
-        if (data.size() > 1) {
-            StringBuilder compare = new StringBuilder();
-            compare = updateCompareSigns(compare, data);
-            String resultMessage;
-            String sqlStatement = "UPDATE " + tableName + " SET" + compare;
-            System.out.println(sqlStatement);
-        /*
-        try {
-            PreparedStatement statement = DBConnection.prepareStatement(sqlStatement);
-            int rowsDeleted = statement.executeUpdate();
-            resultMessage = "Zmieniono " + rowsDeleted + " rzedow";
-        } catch (SQLException e) {
-            System.err.println("Error during delete: " + e.getMessage());
-            resultMessage = e.getMessage();
-        }
-        return resultMessage;
-        */
-        }
-        return "";
-    }
-    public StringBuilder updateCompareSigns(StringBuilder readValues, ArrayList<String> compareData) {
-        if (compareData.get(2) != null && !compareData.get(2).isEmpty()) {
-            readValues.append(" WHERE " ).append(compareData.get(0));
-            String type = switch (compareData.get(1)) {
-                case "Equal" -> " = ";
-                case "Lower" -> " < ";
-                case "Higher" -> " > ";
-                case "Between" -> " BETWEEN ";
-                default -> "";
-            };
-            readValues.append(type).append(compareData.get(2));
-            if (type.equals(" BETWEEN "))
-                readValues.append(" AND ").append(compareData.get(3));
-        }
-        return readValues;
     }
 }
