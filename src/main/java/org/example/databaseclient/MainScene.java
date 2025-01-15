@@ -18,7 +18,7 @@ public class MainScene {
     public void start(Stage stage, DatabaseManager readManager){
         DBmanager = readManager;
         crudStageMenu = new CrudStages(DBmanager);
-        setDisconnectButton(crudMenuOrganizer);
+        setDisconnectButton();
         ScrollPane scroll = new ScrollPane(crudMenuOrganizer);
         scroll.setFitToHeight(true);
         scroll.setFitToWidth(true);
@@ -41,7 +41,10 @@ public class MainScene {
         VBox emptyOrganizer = JavaFxObjectsManager.createVBox(4, 4);
         emptyOrganizer.setId("CrudMenus");
         Pane[] crudMenuChildren = {crudButtonsOrganizer, emptyOrganizer};
-        VBox returnBox = JavaFxObjectsManager.createVBox(0, 0);
+        VBox returnBox = JavaFxObjectsManager.createVBox(4, 4);
+        Button changeViewTable = JavaFxObjectsManager.createButton("Zmien na widok", this::changeButton);
+        changeViewTable.setId("Change");
+        JavaFxObjectsManager.fillOrganizer(returnBox, changeViewTable);
         JavaFxObjectsManager.fillOrganizer(returnBox, crudMenuChildren);
         return returnBox;
     }
@@ -61,11 +64,21 @@ public class MainScene {
         int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
         crudMenuOrganizer.getChildren().set(id, crudStageMenu.deleteStage());
     }
-    private void setDisconnectButton(VBox organizer) {
+    private void setDisconnectButton() {
         Button disconnectButton = JavaFxObjectsManager.createButton("Rozlacz", this::disconnect);
-        JavaFxObjectsManager.fillOrganizer(organizer, disconnectButton);
+        JavaFxObjectsManager.fillOrganizer(crudMenuOrganizer, disconnectButton);
     }
-
+    private void changeButton() {
+        if (((Button) crudMenuOrganizer.lookup("#Change")).getText().equals("Zmien na widok"))
+            ((Button) crudMenuOrganizer.lookup("#Change")).setText("Zmien na tabele");
+        else
+            ((Button) crudMenuOrganizer.lookup("#Change")).setText("Zmien na widok");
+        VBox emptyOrganizer = JavaFxObjectsManager.createVBox(4, 4);
+        emptyOrganizer.setId("CrudMenus");
+        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
+        crudMenuOrganizer.getChildren().set(id, emptyOrganizer);
+        DBmanager.switchTableView();
+    }
     public void setOnDisconnect(Runnable function){
         nextFunction = function;
     }

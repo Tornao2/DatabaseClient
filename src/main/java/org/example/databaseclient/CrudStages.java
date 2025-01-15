@@ -187,8 +187,8 @@ public class CrudStages {
         }
         if (groupCheck.isSelected()) {
             groupData = ((ListView<String>) organizer.lookup("#checkBoxGroupRead").lookup("#ColumnChoice")).getSelectionModel().getSelectedItem();
-            if (compareData.isEmpty())
-                compareData.add("Group");
+            if (checkCompare.isSelected())
+                compareData.addFirst("Group");
         }
         if(!groupCheck.isSelected() && !isAgg.isSelected()) {
             compareData.addFirst("Columns");

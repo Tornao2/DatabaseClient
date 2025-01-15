@@ -10,6 +10,7 @@ public class DatabaseManager {
     private Connection DBConnection;
     private DatabaseMetaData metaData;
     String username;
+    boolean useTable = true;
 
     public void setUpConnection (String url, String name, String password) throws SQLException {
         DBConnection = DriverManager.getConnection(url, name, password);
@@ -17,11 +18,20 @@ public class DatabaseManager {
         metaData = DBConnection.getMetaData();
     }
     public ResultSet getTables() {
-        try {
-            return metaData.getTables(null, username, "%", new String[]{"TABLE"});
-        } catch (SQLException e) {
-            System.err.println("Couldn't get table: " + e.getMessage());
-            return null;
+        if (useTable) {
+            try {
+                return metaData.getTables(null, username, "%", new String[]{"TABLE"});
+            } catch (SQLException e) {
+                System.err.println("Couldn't get table: " + e.getMessage());
+                return null;
+            }
+        } else {
+            try {
+                return metaData.getTables(null, username, "%", new String[]{"VIEW"});
+            } catch (SQLException e) {
+                System.err.println("Couldn't get view: " + e.getMessage());
+                return null;
+            }
         }
     }
     public ArrayList<Pair<String, Integer>> getColumnNames(String selectedTable) {
@@ -138,10 +148,9 @@ public class DatabaseManager {
             default -> "";
         };
         sqlStatement = sqlStatement.concat(type);
-        ArrayList<Pair<String, Integer>> columns = getColumnNames(tableName);
         int num = 0;
-        for (int i = 0; i < columns.size(); i++)
-                if(columns.get(i).getKey().equals(compareData.get(2)))
+        for (int i = 0; i < listOfColumns.size(); i++)
+                if(listOfColumns.get(i).getKey().equals(compareData.get(2)))
                     num = i;
         switch (listOfColumns.get(num).getValue()){
                 case 2:
@@ -167,7 +176,7 @@ public class DatabaseManager {
         String resultMessage;
         if (!data.getFirst().equals("Table")) {
             values.append(" WHERE ").append(data.get(1));
-            values = deleteCompareSigns(values, data);
+            values = deleteCompareSigns(tableName, values, data);
         }
         String sqlStatement = "DELETE FROM " + tableName + values;
         try {
@@ -180,7 +189,7 @@ public class DatabaseManager {
         }
         return resultMessage;
     }
-    public StringBuilder deleteCompareSigns(StringBuilder readValues, ArrayList<String> compareData){
+    public StringBuilder deleteCompareSigns(String tableName, StringBuilder readValues, ArrayList<String> compareData){
         String type = switch (compareData.get(2)) {
             case "Equal" -> " = ";
             case "Lower" -> " < ";
@@ -188,9 +197,28 @@ public class DatabaseManager {
             case "Between" -> " BETWEEN ";
             default -> "";
         };
-        readValues.append(type).append(compareData.get(3));
-        if (type.equals(" BETWEEN "))
-            readValues.append(" AND ").append(compareData.get(4));
+        readValues.append(type);
+        ArrayList<Pair<String, Integer>> listOfColumns = getColumnNames(tableName);
+        int num = 0;
+        for (int i = 0; i < listOfColumns.size(); i++)
+            if(listOfColumns.get(i).getKey().equals(compareData.get(1)))
+                num = i;
+        switch (listOfColumns.get(num).getValue()){
+            case 2:
+                readValues.append(compareData.get(3));
+                if (type.equals(" BETWEEN "))
+                    readValues.append(" AND ").append(compareData.get(4));
+                break;
+            case 1:
+            case 12:
+            case 93:
+                readValues.append("'").append(compareData.get(3)).append("'");
+                if (type.equals(" BETWEEN "))
+                    readValues.append(" AND ").append("'").append(compareData.get(4)).append("'");
+                break;
+            default:
+                break;
+        }
         return readValues;
     }
 
@@ -304,5 +332,8 @@ public class DatabaseManager {
         } catch (SQLException e) {
             System.err.println("Couldn't disconnect " + e.getMessage());
         }
+    }
+    public void switchTableView() {
+        useTable = !useTable;
     }
 }

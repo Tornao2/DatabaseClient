@@ -52,17 +52,17 @@ ID INTEGER PRIMARY KEY,
 KOLUMNA INTEGER,
 RZAD INTEGER,
 STAN VARCHAR2(50),
-SALE_ID INTEGER,
-FOREIGN KEY (SALE_ID) REFERENCES SALE(ID)
+SALA_ID INTEGER,
+FOREIGN KEY (SALA_ID) REFERENCES SALE(ID)
 )
 
 CREATE TABLE SEANSE(
 ID INTEGER PRIMARY KEY,
 DATA DATE,
 FILMY_ID INTEGER,
-SALE_ID INTEGER,
+SALA_ID INTEGER,
 FOREIGN KEY (FILMY_ID) REFERENCES FILMY(ID),
-FOREIGN KEY (SALE_ID) REFERENCES SALE(ID)
+FOREIGN KEY (SALA_ID) REFERENCES SALE(ID)
 )
 
 CREATE TABLE BILETY(
@@ -80,3 +80,107 @@ CREATE OR REPLACE VIEW OcenyWidok AS
     SELECT k.LOGIN, f.TYTULFILMU, o.komentarz, o.ocena FROM oceny o
     join konta k on o.KONTA_EMAIL = k.EMAIL
     join filmy f on f.ID = o.FILMY_ID
+
+CREATE OR REPLACE VIEW PRACOWNICYWIDOK as
+select p.imie, p.nazwisko, p.stanowisko, k.miasto, k.pseudonim
+FROM PRACOWNICY p join kina k on k.id = p.KINA_ID
+
+CREATE OR REPLACE VIEW SEANSEWIDOK as
+select s.data, f.tytulfilmu, sa.numersali, k.miasto, k.pseudonim, m.rzad, m.kolumna, m.stan from
+sale sa join kina k on k.id = sa.kina_id
+join seanse s on sa.id = s.sala_id
+join miejsca m on m.sala_id = sa.id
+join filmy f on f.id = s.FILMY_ID
+
+CREATE OR REPLACE VIEW KINAWIDOK AS
+select k.miasto, k.pseudonim, s.numersali, m.kolumna, m.rzad from
+kina k join sale s on k.id = s.kina_id
+join miejsca m on s.id = m.SALA_ID
+
+CREATE OR REPLACE TRIGGER OcenyWidok_INSTEAD_OF_DELETE
+INSTEAD OF DELETE ON OcenyWidok
+FOR EACH ROW
+BEGIN
+  IF :OLD.login IS NULL AND :OLD.tytulfilmu IS NULL AND :OLD.komentarz IS NULL AND :OLD.ocena IS NULL THEN
+    DELETE FROM oceny;
+  ELSIF :OLD.login IS NOT NULL THEN
+    DELETE FROM oceny
+    WHERE konta_email = (SELECT email FROM konta WHERE login = :OLD.login);
+  ELSIF :OLD.tytulfilmu IS NOT NULL THEN
+    DELETE FROM oceny
+    WHERE filmy_id = (SELECT id FROM filmy WHERE tytulfilmu = :OLD.tytulfilmu);
+  ELSIF :OLD.komentarz IS NOT NULL THEN
+    DELETE FROM oceny
+    WHERE komentarz = :OLD.komentarz;
+  ELSIF :OLD.ocena IS NOT NULL THEN
+    DELETE FROM oceny
+    WHERE ocena = :OLD.ocena;
+  END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER KinoWidok_INSTEAD_OF_DELETE
+INSTEAD OF DELETE ON KINAWIDOK
+FOR EACH ROW
+BEGIN
+  IF :OLD.miasto IS NULL AND :OLD.pseudonim IS NULL AND :OLD.numersali IS NULL AND :OLD.kolumna IS NULL AND :OLD.rzad IS NULL THEN
+    DELETE FROM miejsca;
+  ELSIF :OLD.miasto IS NOT NULL AND :OLD.pseudonim IS NOT NULL THEN
+    DELETE FROM miejsca
+    WHERE sala_id IN (SELECT id FROM sale WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim));
+  ELSIF :OLD.numersali IS NOT NULL THEN
+    DELETE FROM miejsca
+    WHERE sala_id IN (SELECT id FROM sale WHERE numersali = :OLD.numersali);
+  ELSIF :OLD.kolumna IS NOT NULL AND :OLD.rzad IS NOT NULL THEN
+    DELETE FROM miejsca
+    WHERE kolumna = :OLD.kolumna AND rzad = :OLD.rzad;
+  END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER PracownicyWidok_INSTEAD_OF_DELETE
+INSTEAD OF DELETE ON PRACOWNICYWIDOK
+FOR EACH ROW
+BEGIN
+  IF :OLD.imie IS NULL AND :OLD.nazwisko IS NULL AND :OLD.stanowisko IS NULL AND :OLD.miasto IS NULL AND :OLD.pseudonim IS NULL THEN
+    DELETE FROM pracownicy;
+  ELSIF :OLD.imie IS NOT NULL THEN
+    DELETE FROM pracownicy
+    WHERE imie = :OLD.imie;
+  ELSIF :OLD.nazwisko IS NOT NULL THEN
+    DELETE FROM pracownicy
+    WHERE nazwisko = :OLD.nazwisko;
+  ELSIF :OLD.stanowisko IS NOT NULL THEN
+    DELETE FROM pracownicy
+    WHERE stanowisko = :OLD.stanowisko;
+  ELSIF :OLD.miasto IS NOT NULL AND :OLD.pseudonim IS NOT NULL THEN
+    DELETE FROM pracownicy
+    WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim);
+  END IF;
+END;
+/
+
+CREATE OR REPLACE TRIGGER SeanseWidok_INSTEAD_OF_DELETE
+INSTEAD OF DELETE ON SEANSEWIDOK
+FOR EACH ROW
+BEGIN
+  IF :OLD.data IS NULL AND :OLD.tytulfilmu IS NULL AND :OLD.numersali IS NULL AND :OLD.miasto IS NULL AND :OLD.pseudonim IS NULL AND :OLD.rzad IS NULL AND :OLD.kolumna IS NULL AND :OLD.stan IS NULL THEN
+    DELETE FROM seanse;
+  ELSIF :OLD.data IS NOT NULL THEN
+    DELETE FROM seanse
+    WHERE data = :OLD.data;
+  ELSIF :OLD.tytulfilmu IS NOT NULL THEN
+    DELETE FROM seanse
+    WHERE filmy_id = (SELECT id FROM filmy WHERE tytulfilmu = :OLD.tytulfilmu);
+  ELSIF :OLD.numersali IS NOT NULL THEN
+    DELETE FROM seanse
+    WHERE sale_id = (SELECT id FROM sale WHERE numersali = :OLD.numersali);
+  ELSIF :OLD.miasto IS NOT NULL AND :OLD.pseudonim IS NOT NULL THEN
+    DELETE FROM seanse
+    WHERE sale_id = (SELECT id FROM sale WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim));
+  ELSIF :OLD.rzad IS NOT NULL AND :OLD.kolumna IS NOT NULL THEN
+    DELETE FROM seanse
+    WHERE id IN (SELECT seanse_id FROM bilety WHERE miejsca_id = (SELECT id FROM miejsca WHERE rzad = :OLD.rzad AND kolumna = :OLD.kolumna));
+  END IF;
+END;
+/

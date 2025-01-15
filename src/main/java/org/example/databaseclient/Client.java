@@ -22,4 +22,3 @@ public class Client extends Application {
 }
 
 //Miec procedure z kursorem
-//Zapytania ze zlaczeniami, moga byc jako joiny jako widoki
