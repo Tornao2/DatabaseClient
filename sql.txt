@@ -5,26 +5,26 @@ REZYSER VARCHAR2(100),
 ROKPRODUKCJI INTEGER,
 TYTULFILMU VARCHAR2(255)
 )
-
+/
 create table kina(
 id integer primary key,
 miasto varchar2(100),
 pseudonim varchar2(100)
 )
-
+/
 CREATE TABLE SALE(
 ID INTEGER PRIMARY KEY,
 NUMERSALI INTEGER,
 KINA_ID INTEGER,
 FOREIGN KEY (KINA_ID) REFERENCES KINA(ID)
 )
-
+/
 CREATE TABLE KONTA(
 EMAIL VARCHAR2(255) PRIMARY KEY,
 HASLO VARCHAR2(50),
 LOGIN VARCHAR2(50)
 )
-
+/
 CREATE TABLE OCENY(
 ID INTEGER PRIMARY KEY,
 KOMENTARZ VARCHAR2(1024),
@@ -34,7 +34,7 @@ konta_email varchar2(255),
 foreign key (filmy_id) references filmy(id),
 foreign key (konta_email) references konta(email)
 )
-
+/
 create table pracownicy(
 pesel char(11) primary key,
 datazatrudnienia date,
@@ -46,7 +46,7 @@ stanowisko varchar2(50),
 kina_id integer,
 foreign key (kina_id) references kina(id)
 )
-
+/
 CREATE TABLE MIEJSCA(
 ID INTEGER PRIMARY KEY,
 KOLUMNA INTEGER,
@@ -55,7 +55,7 @@ STAN VARCHAR2(50),
 SALA_ID INTEGER,
 FOREIGN KEY (SALA_ID) REFERENCES SALE(ID)
 )
-
+/
 CREATE TABLE SEANSE(
 ID INTEGER PRIMARY KEY,
 DATA DATE,
@@ -64,7 +64,7 @@ SALA_ID INTEGER,
 FOREIGN KEY (FILMY_ID) REFERENCES FILMY(ID),
 FOREIGN KEY (SALA_ID) REFERENCES SALE(ID)
 )
-
+/
 CREATE TABLE BILETY(
 ID INTEGER PRIMARY KEY,
 CENA INTEGER,
@@ -75,28 +75,28 @@ FOREIGN KEY (KONTA_EMAIL) REFERENCES KONTA(EMAIL),
 FOREIGN KEY (SEANSE_ID) REFERENCES SEANSE(ID),
 FOREIGN KEY (MIEJSCA_ID) REFERENCES MIEJSCA(ID)
 )
-
+/
 CREATE OR REPLACE VIEW OcenyWidok AS
     SELECT k.LOGIN, f.TYTULFILMU, o.komentarz, o.ocena FROM oceny o
     join konta k on o.KONTA_EMAIL = k.EMAIL
     join filmy f on f.ID = o.FILMY_ID
-
+/
 CREATE OR REPLACE VIEW PRACOWNICYWIDOK as
 select p.imie, p.nazwisko, p.stanowisko, k.miasto, k.pseudonim
 FROM PRACOWNICY p join kina k on k.id = p.KINA_ID
-
+/
 CREATE OR REPLACE VIEW SEANSEWIDOK as
 select s.data, f.tytulfilmu, sa.numersali, k.miasto, k.pseudonim, m.rzad, m.kolumna, m.stan from
 sale sa join kina k on k.id = sa.kina_id
 join seanse s on sa.id = s.sala_id
 join miejsca m on m.sala_id = sa.id
 join filmy f on f.id = s.FILMY_ID
-
+/
 CREATE OR REPLACE VIEW KINAWIDOK AS
 select k.miasto, k.pseudonim, s.numersali, m.kolumna, m.rzad from
 kina k join sale s on k.id = s.kina_id
 join miejsca m on s.id = m.SALA_ID
-
+/
 CREATE OR REPLACE TRIGGER OcenyWidok_INSTEAD_OF_DELETE
 INSTEAD OF DELETE ON OcenyWidok
 FOR EACH ROW
