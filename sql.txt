@@ -174,10 +174,10 @@ BEGIN
     WHERE filmy_id = (SELECT id FROM filmy WHERE tytulfilmu = :OLD.tytulfilmu);
   ELSIF :OLD.numersali IS NOT NULL THEN
     DELETE FROM seanse
-    WHERE sale_id = (SELECT id FROM sale WHERE numersali = :OLD.numersali);
+    WHERE sala_id = (SELECT id FROM sale WHERE numersali = :OLD.numersali);
   ELSIF :OLD.miasto IS NOT NULL AND :OLD.pseudonim IS NOT NULL THEN
     DELETE FROM seanse
-    WHERE sale_id = (SELECT id FROM sale WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim));
+    WHERE sala_id = (SELECT id FROM sale WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim));
   ELSIF :OLD.rzad IS NOT NULL AND :OLD.kolumna IS NOT NULL THEN
     DELETE FROM seanse
     WHERE id IN (SELECT seanse_id FROM bilety WHERE miejsca_id = (SELECT id FROM miejsca WHERE rzad = :OLD.rzad AND kolumna = :OLD.kolumna));
