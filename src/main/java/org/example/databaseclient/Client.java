@@ -21,4 +21,3 @@ public class Client extends Application {
     }
 }
 
-//Miec procedure z kursorem

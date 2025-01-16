@@ -1,6 +1,5 @@
 package org.example.databaseclient;
 
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
@@ -10,7 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class MainScene {
-    private final VBox crudMenuOrganizer = setUpCrudMenus();
+    private VBox topBox;
     private CrudStages crudStageMenu;
     private DatabaseManager DBmanager;
     Runnable nextFunction;
@@ -18,8 +17,15 @@ public class MainScene {
     public void start(Stage stage, DatabaseManager readManager){
         DBmanager = readManager;
         crudStageMenu = new CrudStages(DBmanager);
-        setDisconnectButton();
-        ScrollPane scroll = new ScrollPane(crudMenuOrganizer);
+        topBox = JavaFxObjectsManager.createVBox(4, 4);
+        Button changeViewTable = JavaFxObjectsManager.createButton("Zmien na tryb podstawowy", this::changeButton);
+        changeViewTable.setId("Change");
+        JavaFxObjectsManager.fillOrganizer(topBox, changeViewTable);
+        VBox crudMenuOrganizer = setUpCrudMenus();
+        crudMenuOrganizer.setId("CRUD");
+        JavaFxObjectsManager.fillOrganizer(topBox, crudMenuOrganizer);
+        setDisconnectButton(topBox);
+        ScrollPane scroll = new ScrollPane(topBox);
         scroll.setFitToHeight(true);
         scroll.setFitToWidth(true);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -32,7 +38,8 @@ public class MainScene {
         Button readButton = JavaFxObjectsManager.createButton("Czytaj", this::setReadStage);
         Button updateButton = JavaFxObjectsManager.createButton("Zaaktualizuj", this::setUpdateStage);
         Button deleteButton = JavaFxObjectsManager.createButton("Usun", this::setDeleteStage);
-        return new Button[]{insertButton, readButton, updateButton, deleteButton};
+        Button readViewButton = JavaFxObjectsManager.createButton("Czytaj Widok", this::setReadViewStage);
+        return new Button[]{insertButton, readButton, updateButton, deleteButton, readViewButton};
     }
     private VBox setUpCrudMenus() {
         Button[] crudButtons = setUpCrudButtons();
@@ -42,42 +49,49 @@ public class MainScene {
         emptyOrganizer.setId("CrudMenus");
         Pane[] crudMenuChildren = {crudButtonsOrganizer, emptyOrganizer};
         VBox returnBox = JavaFxObjectsManager.createVBox(4, 4);
-        Button changeViewTable = JavaFxObjectsManager.createButton("Zmien na widok", this::changeButton);
-        changeViewTable.setId("Change");
-        JavaFxObjectsManager.fillOrganizer(returnBox, changeViewTable);
         JavaFxObjectsManager.fillOrganizer(returnBox, crudMenuChildren);
         return returnBox;
     }
     private void setInsertStage(){
-        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
-        crudMenuOrganizer.getChildren().set(id, crudStageMenu.insertStage());
+        int id = ((VBox) topBox.lookup("#CRUD")).getChildren().indexOf(((topBox.lookup("#CRUD")).lookup("#CrudMenus")));
+        DBmanager.switchTableView(true);
+        ((VBox) topBox.lookup("#CRUD")).getChildren().set(id, crudStageMenu.insertStage());
     }
     private void setReadStage(){
-        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
-        crudMenuOrganizer.getChildren().set(id, crudStageMenu.readStage());
+        int id = ((VBox) topBox.lookup("#CRUD")).getChildren().indexOf((topBox.lookup("#CRUD")).lookup("#CrudMenus"));
+        DBmanager.switchTableView(true);
+        ((VBox) topBox.lookup("#CRUD")).getChildren().set(id, crudStageMenu.readStage());
     }
     private void setUpdateStage(){
-        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
-        crudMenuOrganizer.getChildren().set(id, crudStageMenu.updateStage());
+        int id = ((VBox) topBox.lookup("#CRUD")).getChildren().indexOf(((topBox.lookup("#CRUD")).lookup("#CrudMenus")));
+        DBmanager.switchTableView(true);
+        ((VBox) topBox.lookup("#CRUD")).getChildren().set(id, crudStageMenu.updateStage());
     }
     private void setDeleteStage(){
-        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
-        crudMenuOrganizer.getChildren().set(id, crudStageMenu.deleteStage());
+        int id = ((VBox) topBox.lookup("#CRUD")).getChildren().indexOf(((topBox.lookup("#CRUD")).lookup("#CrudMenus")));
+        DBmanager.switchTableView(true);
+        ((VBox) topBox.lookup("#CRUD")).getChildren().set(id, crudStageMenu.deleteStage());
     }
-    private void setDisconnectButton() {
+    private void setReadViewStage(){
+        int id = ((VBox) topBox.lookup("#CRUD")).getChildren().indexOf(((topBox.lookup("#CRUD")).lookup("#CrudMenus")));
+        DBmanager.switchTableView(false);
+        ((VBox) topBox.lookup("#CRUD")).getChildren().set(id, crudStageMenu.readStage());
+    }
+    private void setDisconnectButton(VBox topBox) {
         Button disconnectButton = JavaFxObjectsManager.createButton("Rozlacz", this::disconnect);
-        JavaFxObjectsManager.fillOrganizer(crudMenuOrganizer, disconnectButton);
+        JavaFxObjectsManager.fillOrganizer(topBox, disconnectButton);
     }
     private void changeButton() {
-        if (((Button) crudMenuOrganizer.lookup("#Change")).getText().equals("Zmien na widok"))
-            ((Button) crudMenuOrganizer.lookup("#Change")).setText("Zmien na tabele");
-        else
-            ((Button) crudMenuOrganizer.lookup("#Change")).setText("Zmien na widok");
-        VBox emptyOrganizer = JavaFxObjectsManager.createVBox(4, 4);
-        emptyOrganizer.setId("CrudMenus");
-        int id = crudMenuOrganizer.getChildren().indexOf((crudMenuOrganizer.lookup("#CrudMenus")));
-        crudMenuOrganizer.getChildren().set(id, emptyOrganizer);
-        DBmanager.switchTableView();
+        if (((Button) topBox.lookup("#Change")).getText().equals("Zmien na tryb podstawowy")) {
+            ((Button) topBox.lookup("#Change")).setText("Zmien na tryb zaawansowany");
+            ((VBox) topBox.lookup("#CRUD")).getChildren().clear();
+        }
+        else {
+            VBox crudMenu = setUpCrudMenus();
+            crudMenu.setId("CRUD");
+            topBox.getChildren().set(1, crudMenu);
+            ((Button) topBox.lookup("#Change")).setText("Zmien na tryb podstawowy");
+        }
     }
     public void setOnDisconnect(Runnable function){
         nextFunction = function;

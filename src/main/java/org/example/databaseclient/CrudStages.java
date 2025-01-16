@@ -45,6 +45,7 @@ public class CrudStages {
     }
     public VBox deleteStage() {
         organizer = sharedSetUp();
+        DBmanager.switchTableView(true);
         organizer.getChildren().getFirst().setOnMousePressed(_ -> displayDelete());
         return organizer;
     }

@@ -17,22 +17,10 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[CREATE OR REPLACE TRIGGER KinoWidok_INSTEAD_OF_DELETE
-INSTEAD OF DELETE ON KINAWIDOK
-FOR EACH ROW
-BEGIN
-  IF :OLD.miasto IS NULL AND :OLD.pseudonim IS NULL AND :OLD.numersali IS NULL AND :OLD.kolumna IS NULL AND :OLD.rzad IS NULL THEN
-    DELETE FROM miejsca;
-  ELSIF :OLD.miasto IS NOT NULL AND :OLD.pseudonim IS NOT NULL THEN
-    DELETE FROM miejsca
-    WHERE sala_id IN (SELECT id FROM sale WHERE kina_id = (SELECT id FROM kina WHERE miasto = :OLD.miasto AND pseudonim = :OLD.pseudonim));
-  ELSIF :OLD.numersali IS NOT NULL THEN
-    DELETE FROM miejsca
-    WHERE sala_id IN (SELECT id FROM sale WHERE numersali = :OLD.numersali);
-  ELSIF :OLD.kolumna IS NOT NULL AND :OLD.rzad IS NOT NULL THEN
-    DELETE FROM miejsca
-    WHERE kolumna = :OLD.kolumna AND rzad = :OLD.rzad;
-  END IF;
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[BEGIN
+  FOR t IN (SELECT trigger_name FROM user_triggers) LOOP
+    EXECUTE IMMEDIATE 'DROP TRIGGER ' || t.trigger_name;
+  END LOOP;
 END;
 /]]></console>
     </connection>

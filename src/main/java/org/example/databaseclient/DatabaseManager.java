@@ -333,7 +333,7 @@ public class DatabaseManager {
             System.err.println("Couldn't disconnect " + e.getMessage());
         }
     }
-    public void switchTableView() {
-        useTable = !useTable;
+    public void switchTableView(boolean use) {
+        useTable = use;
     }
 }
