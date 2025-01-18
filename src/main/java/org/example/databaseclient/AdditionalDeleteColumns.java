@@ -33,7 +33,6 @@ public class AdditionalDeleteColumns implements ChangeListener<Toggle> {
             VBox overallValueBox = JavaFxObjectsManager.createVBox(4, 4);
             overallValueBox.setId("ValueBox");
             overallValueBox.getChildren().add(valueField);
-            listOfColumns.setPrefHeight(40);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);

@@ -17,11 +17,13 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[BEGIN
-  FOR t IN (SELECT trigger_name FROM user_triggers) LOOP
-    EXECUTE IMMEDIATE 'DROP TRIGGER ' || t.trigger_name;
-  END LOOP;
-END;
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[CREATE OR REPLACE VIEW SEANSEWIDOK as
+select s.data, f.tytulfilmu, sa.numersali, k.miasto, k.pseudonim, m.rzad, m.kolumna, r.stan from
+sale sa join kina k on k.id = sa.kina_id
+join seanse s on sa.id = s.sala_id
+join MIEJSCA m on m.SALA_ID = sa.id
+join REZERWACJE r on m.id = r.miejsca_id
+join filmy f on f.id = s.FILMY_ID;
 /]]></console>
     </connection>
   </component>
@@ -38,6 +40,7 @@ END;
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.SEANSE" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.PRACOWNICY" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.FILMY" active-filter-id="" />
+    <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.REZERWACJE" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.BILETY" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.MIEJSCA" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.SALE" active-filter-id="" />

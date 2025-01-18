@@ -29,7 +29,6 @@ public class AdditionalReadWhere implements ChangeListener<Boolean>{
             overallValueBox.getChildren().add(valueField);
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
-            listOfColumns.setPrefHeight(40);
             int id = organizer.getChildren().indexOf((organizer.lookup("#Compare")))+1;
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, overallValueBox);

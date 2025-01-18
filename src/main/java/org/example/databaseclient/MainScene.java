@@ -11,11 +11,13 @@ import javafx.stage.Stage;
 public class MainScene {
     private VBox topBox;
     private CrudStages crudStageMenu;
+    private BasicMode basic;
     private DatabaseManager DBmanager;
     Runnable nextFunction;
 
     public void start(Stage stage, DatabaseManager readManager){
         DBmanager = readManager;
+        basic = new BasicMode(DBmanager);
         crudStageMenu = new CrudStages(DBmanager);
         topBox = JavaFxObjectsManager.createVBox(4, 4);
         Button changeViewTable = JavaFxObjectsManager.createButton("Zmien na tryb podstawowy", this::changeButton);
@@ -49,6 +51,7 @@ public class MainScene {
         emptyOrganizer.setId("CrudMenus");
         Pane[] crudMenuChildren = {crudButtonsOrganizer, emptyOrganizer};
         VBox returnBox = JavaFxObjectsManager.createVBox(4, 4);
+        returnBox.setId("CRUD");
         JavaFxObjectsManager.fillOrganizer(returnBox, crudMenuChildren);
         return returnBox;
     }
@@ -83,13 +86,13 @@ public class MainScene {
     }
     private void changeButton() {
         if (((Button) topBox.lookup("#Change")).getText().equals("Zmien na tryb podstawowy")) {
+            topBox.getChildren().remove(topBox.lookup("#CRUD"));
+            topBox.getChildren().add(1,basic.organize());
             ((Button) topBox.lookup("#Change")).setText("Zmien na tryb zaawansowany");
-            ((VBox) topBox.lookup("#CRUD")).getChildren().clear();
         }
         else {
-            VBox crudMenu = setUpCrudMenus();
-            crudMenu.setId("CRUD");
-            topBox.getChildren().set(1, crudMenu);
+            topBox.getChildren().remove(topBox.lookup("#BASIC"));
+            topBox.getChildren().add(1, setUpCrudMenus());
             ((Button) topBox.lookup("#Change")).setText("Zmien na tryb podstawowy");
         }
     }

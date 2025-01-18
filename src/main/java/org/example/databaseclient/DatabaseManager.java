@@ -336,4 +336,15 @@ public class DatabaseManager {
     public void switchTableView(boolean use) {
         useTable = use;
     }
+    public ResultSet pushSqlRaw(String stringStatement){
+        ResultSet result;
+        try {
+            PreparedStatement statement = DBConnection.prepareStatement(stringStatement);
+            result = statement.executeQuery();
+        } catch (SQLException e) {
+            System.err.println("Error during rawSql: " + e.getMessage());
+            result = null;
+        }
+        return result;
+    }
 }

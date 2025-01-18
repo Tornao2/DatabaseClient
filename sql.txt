@@ -51,7 +51,6 @@ CREATE TABLE MIEJSCA(
 ID INTEGER PRIMARY KEY,
 KOLUMNA INTEGER,
 RZAD INTEGER,
-STAN VARCHAR2(50),
 SALA_ID INTEGER,
 FOREIGN KEY (SALA_ID) REFERENCES SALE(ID)
 )
@@ -76,6 +75,15 @@ FOREIGN KEY (SEANSE_ID) REFERENCES SEANSE(ID),
 FOREIGN KEY (MIEJSCA_ID) REFERENCES MIEJSCA(ID)
 )
 /
+CREATE TABLE REZERWACJE (
+    id Integer primary key,
+    stan Varchar2(50),
+    miejsca_id integer,
+    seanse_id integer,
+    Foreign Key (miejsca_id) references miejsca (id),
+    foreign key (seanse_id) references seanse (id)
+);
+/
 CREATE OR REPLACE VIEW OcenyWidok AS
     SELECT k.LOGIN, f.TYTULFILMU, o.komentarz, o.ocena FROM oceny o
     join konta k on o.KONTA_EMAIL = k.EMAIL
@@ -86,11 +94,12 @@ select p.imie, p.nazwisko, p.stanowisko, k.miasto, k.pseudonim
 FROM PRACOWNICY p join kina k on k.id = p.KINA_ID
 /
 CREATE OR REPLACE VIEW SEANSEWIDOK as
-select s.data, f.tytulfilmu, sa.numersali, k.miasto, k.pseudonim, m.rzad, m.kolumna, m.stan from
+select s.data, f.tytulfilmu, sa.numersali, k.miasto, k.pseudonim, m.rzad, m.kolumna, r.stan from
 sale sa join kina k on k.id = sa.kina_id
 join seanse s on sa.id = s.sala_id
-join miejsca m on m.sala_id = sa.id
-join filmy f on f.id = s.FILMY_ID
+join MIEJSCA m on m.SALA_ID = sa.id
+join REZERWACJE r on m.id = r.miejsca_id
+join filmy f on f.id = s.FILMY_ID;
 /
 CREATE OR REPLACE VIEW KINAWIDOK AS
 select k.miasto, k.pseudonim, s.numersali, m.kolumna, m.rzad from

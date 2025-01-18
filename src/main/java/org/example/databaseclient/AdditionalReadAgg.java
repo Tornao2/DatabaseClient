@@ -27,7 +27,6 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, basicToggles);
             ListView <String> listOfColumns = setColumn();
             listOfColumns.setId("ColumnChoice");
-            listOfColumns.setPrefHeight(40);
             JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
             int id = organizer.getChildren().indexOf((organizer.lookup("#Options")));
             organizer.getChildren().add(id+1, overallOrganizer);
@@ -88,7 +87,6 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
                     } else {
                         ListView <String> listOfColumns = setColumn();
                         listOfColumns.setId("ColumnChoice");
-                        listOfColumns.setPrefHeight(40);
                         JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
                     }
                 });
@@ -99,7 +97,6 @@ public class AdditionalReadAgg implements ChangeListener<Boolean> {
                 if (organizer.lookup("#checkBoxOptionsRead").lookup("#ColumnChoice") == null) {
                     ListView<String> listOfColumns = setColumn();
                     listOfColumns.setId("ColumnChoice");
-                    listOfColumns.setPrefHeight(40);
                     JavaFxObjectsManager.fillOrganizer(overallOrganizer, listOfColumns);
                 }
             }

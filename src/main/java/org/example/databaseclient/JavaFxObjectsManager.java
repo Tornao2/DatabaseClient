@@ -51,6 +51,7 @@ public class JavaFxObjectsManager {
     }
     static public ListView<String> createHorizontalListView(ArrayList<String> elements){
         ListView <String> returnObj = new ListView<>();
+        returnObj.setPrefHeight(40);
         returnObj.getItems().addAll(elements);
         returnObj.setOrientation(Orientation.HORIZONTAL);
         return returnObj;

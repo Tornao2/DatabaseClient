@@ -54,8 +54,6 @@ public class CrudStages {
         VBox returnObj = JavaFxObjectsManager.createVBox(4, 4);
         returnObj.setId("CrudMenus");
         ListView<String> tables = createTableChoice();
-        if (tables != null)
-            tables.setPrefHeight(40);
         JavaFxObjectsManager.fillOrganizer(returnObj, tables);
         return returnObj;
     }
@@ -366,7 +364,6 @@ public class CrudStages {
         Label guideLabel = JavaFxObjectsManager.createLabel("Po czym decydowac jakie rzedy aktualizowac");
         ListView <String> deciding = setColumn();
         deciding.setId("Deciding");
-        deciding.setPrefHeight(40);
         deciding.setOnMousePressed(_-> setToggles(selectedTable));
         Control[] controls = {guideLabel, deciding};
         JavaFxObjectsManager.fillOrganizer(organizer, controls);
