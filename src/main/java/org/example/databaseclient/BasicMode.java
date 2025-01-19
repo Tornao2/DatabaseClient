@@ -1,8 +1,11 @@
 package org.example.databaseclient;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -40,31 +43,83 @@ public class BasicMode {
     private void getSessionChairs() {
         ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
         ArrayList<String> arguments = new ArrayList<>();
-        while(true) {
-            try {
-                if (!results.next()) break;
-                arguments.add(results.getString("MIASTO"));
-            } catch (SQLException e) {
-                return;
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
             }
-        }
-        ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
-        cities.setOnMousePressed(_ -> {
-            if (!cities.getSelectionModel().isEmpty()) {
-                ResultSet res = DBmanager.pushSqlRaw("SELECT PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
-                arguments.clear();
-                while (true) {
-                    try {
-                        if (!res.next()) break;
-                        arguments.add(res.getString("PSEUDONIM"));
-                    } catch (SQLException e) {
-                        return;
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            ResultSet re = DBmanager.pushSqlRaw("SELECT S.ID, S.DATA, sa.NUMERSALI FROM SEANSE S " +
+                                    "join sale sa on S.sala_id = sa.id " +
+                                    "join kina k on sa.KINA_ID = k.id " +
+                                    "where k.PSEUDONIM = " + "'" + selectedCinemas.getSelectionModel().getSelectedItem() + "'");
+                            arguments.clear();
+                            if (re != null) {
+                                ArrayList<Integer> seanseListId = new ArrayList<>();
+                                while (true) {
+                                    try {
+                                        if (!re.next()) break;
+                                        seanseListId.add(re.getInt("ID"));
+                                        arguments.add(re.getString("DATA") + " sala " + re.getString("NUMERSALI"));
+                                    } catch (SQLException e) {
+                                        return;
+                                    }
+                                }
+                                ListView<String> selectedDates = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                selectedDates.setOnMousePressed(_ -> {
+                                    ResultSet r = DBmanager.pushSqlRaw("SELECT STAN, M.KOLUMNA, M.RZAD FROM REZERWACJE R " +
+                                            "JOIN MIEJSCA M ON R.MIEJSCA_ID = M.ID " +
+                                            "join SEANSE SA ON SA.ID = R.SEANSE_ID " +
+                                            "WHERE SEANSE_ID = " + seanseListId.get(selectedDates.getSelectionModel().getSelectedIndex()));
+                                    arguments.clear();
+                                    if (r != null) {
+                                        ArrayList<String> columns = new ArrayList<>();
+                                        ObservableList<ObservableList<String>> allRows = FXCollections.observableArrayList();
+                                        columns.add("STAN");
+                                        columns.add("KOLUMNA");
+                                        columns.add("RZAD");
+                                        TableView<ObservableList<String>> table = JavaFxObjectsManager.createTableView(columns);
+                                        while (true) {
+                                            try {
+                                                if (!r.next()) break;
+                                                ObservableList<String> row = FXCollections.observableArrayList();
+                                                for (String column : columns) row.add(r.getString(column));
+                                                allRows.add(row);
+                                            } catch (SQLException e) {
+                                                return;
+                                            }
+                                        }
+                                        table.setItems(allRows);
+                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(table);
+                                    }
+                                });
+                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedDates);
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
                     }
                 }
-                ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
-                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
-            }
-        });
-        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
     }
 }
