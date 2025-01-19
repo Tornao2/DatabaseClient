@@ -175,20 +175,29 @@ public class BasicMode {
                                             TextField row = new TextField();
                                             Label colLabel = JavaFxObjectsManager.createLabel("Podaj kolumne");
                                             TextField col = new TextField();
+                                            Label ifWorked = JavaFxObjectsManager.createLabel("Dodano miejsce");
+                                            ifWorked.setVisible(false);
                                             Button send = JavaFxObjectsManager.createButton("Utworz", () -> {
-                                                if (row.getText() != null && col.getText() != null) {
+                                                if (!row.getText().isEmpty() && !col.getText().isEmpty()) {
                                                     int rowId = Integer.parseInt(row.getText());
                                                     int colId = Integer.parseInt(col.getText());
                                                     ResultSet id = DBmanager.pushSqlRaw("SELECT MAX(ID) FROM MIEJSCA");
-                                                    try {
-                                                        id.next();
-                                                        int idInt = id.getInt(1) + 1;
-                                                        DBmanager.pushSqlRaw("INSERT INTO MIEJSCA VALUES(" + idInt + ", " + colId
-                                                        + ", " + rowId + ", " + selectedRooms.getSelectionModel().getSelectedItem()+ ")");
-                                                    } catch (SQLException _) {}
+                                                    if (id != null) {
+                                                        try {
+                                                            id.next();
+                                                            int idInt = id.getInt(1) + 1;
+                                                            DBmanager.pushSqlRaw("INSERT INTO MIEJSCA VALUES(" + idInt + ", " + colId
+                                                                    + ", " + rowId + ", " + selectedRooms.getSelectionModel().getSelectedItem() + ")");
+                                                            ifWorked.setText("Dodano miejsce");
+                                                        } catch (SQLException _) {
+                                                            ifWorked.setText("Nie udalo sie dodac miejsca");
+                                                        } finally {
+                                                            ifWorked.setVisible(true);
+                                                        }
+                                                    }
                                                 }
                                             });
-                                            Control[] controls = {rowLabel, row, colLabel, col, send};
+                                            Control[] controls = {rowLabel, row, colLabel, col, send, ifWorked};
                                             VBox tempBox = JavaFxObjectsManager.createVBox(4, 4);
                                             tempBox.getChildren().addAll(controls);
                                             ((ScrollPane) topBox.lookup("#RESULTS")).setContent(tempBox);
