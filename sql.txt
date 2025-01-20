@@ -105,3 +105,23 @@ CREATE OR REPLACE VIEW KINAWIDOK AS
 select k.miasto, k.pseudonim, s.numersali, m.kolumna, m.rzad from
 kina k join sale s on k.id = s.kina_id
 join miejsca m on s.id = m.SALA_ID
+/
+CREATE OR REPLACE PROCEDURE DeleteAllData AS
+BEGIN
+   FOR fk_rec IN (SELECT constraint_name, table_name
+                  FROM user_constraints
+                  WHERE constraint_type = 'R') LOOP
+      EXECUTE IMMEDIATE 'ALTER TABLE ' || fk_rec.table_name ||
+                        ' DISABLE CONSTRAINT ' || fk_rec.constraint_name;
+   END LOOP;
+   FOR table_rec IN (SELECT table_name FROM user_tables) LOOP
+      EXECUTE IMMEDIATE 'DELETE FROM ' || table_rec.table_name;
+   END LOOP;
+   FOR fk_rec IN (SELECT constraint_name, table_name
+                  FROM user_constraints
+                  WHERE constraint_type = 'R') LOOP
+      EXECUTE IMMEDIATE 'ALTER TABLE ' || fk_rec.table_name ||
+                        ' ENABLE CONSTRAINT ' || fk_rec.constraint_name;
+   END LOOP;
+END;
+/
