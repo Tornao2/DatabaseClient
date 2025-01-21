@@ -32,10 +32,7 @@ PRINT wyniki;]]></console>
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files>
-      <object connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" object-ref="schemas/C##CLIENT/procedures/ZLICZSPRZEDANEBILETY" />
-      <object connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" object-ref="consoles/MyData" />
-    </open-files>
+    <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0" />

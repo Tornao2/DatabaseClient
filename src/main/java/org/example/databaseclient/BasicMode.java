@@ -11,6 +11,9 @@ import oracle.jdbc.internal.OracleTypes;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class BasicMode {
@@ -45,8 +48,9 @@ public class BasicMode {
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
-        Button getAllIncome = JavaFxObjectsManager.createButton("Dostan wszystkie sprzedane bilety dla danych filmow", this::getAmount);
-        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
+        Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
+        Button addSess = JavaFxObjectsManager.createButton("Dodaj nowy seans", this::addSess);
+        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome, addSess};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -268,13 +272,15 @@ public class BasicMode {
                         ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
                         selectedCinemas.setOnMousePressed(_ -> {
                             if (!selectedCinemas.getSelectionModel().isEmpty()) {
-                                ResultSet re = DBmanager.pushSqlRaw("SELECT NUMERSALI FROM SALE s " +
+                                ArrayList<Integer> salaId = new ArrayList<>();
+                                ResultSet re = DBmanager.pushSqlRaw("SELECT ID, NUMERSALI FROM SALE s " +
                                         "where s.kina_id = " + cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex()));
                                 arguments.clear();
                                 if (re != null) {
                                     while (true) {
                                         try {
                                             if (!re.next()) break;
+                                            salaId.add(re.getInt("ID"));
                                             arguments.add(re.getString("NUMERSALI"));
                                         } catch (SQLException e) {
                                             return;
@@ -299,7 +305,7 @@ public class BasicMode {
                                                             id.next();
                                                             int idInt = id.getInt(1) + 1;
                                                             DBmanager.pushSqlRaw("INSERT INTO MIEJSCA VALUES(" + idInt + ", " + colId
-                                                                    + ", " + rowId + ", " + selectedRooms.getSelectionModel().getSelectedItem() + ")");
+                                                                    + ", " + rowId + ", " + salaId.get(selectedRooms.getSelectionModel().getSelectedIndex()) + ")");
                                                             ifWorked.setText("Dodano miejsce");
                                                         } catch (SQLException _) {
                                                             ifWorked.setText("Nie udalo sie dodac miejsca");
@@ -504,6 +510,128 @@ public class BasicMode {
         } catch (SQLException e) {
             Label result = JavaFxObjectsManager.createLabel("Nie udalo sie wywolanie");
             ((ScrollPane) topBox.lookup("#RESULTS")).setContent(result);
+        }
+    }
+    private void addSess(){
+        ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ArrayList<Integer> cinemaId = new ArrayList<>();
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT ID, PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                cinemaId.add(res.getInt("ID"));
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            if (!selectedCinemas.getSelectionModel().isEmpty()) {
+                                ArrayList<Integer> salaId = new ArrayList<>();
+                                ResultSet re = DBmanager.pushSqlRaw("SELECT ID, NUMERSALI FROM SALE s " +
+                                        "where s.kina_id = " + cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex()));
+                                arguments.clear();
+                                if (re != null) {
+                                    while (true) {
+                                        try {
+                                            if (!re.next()) break;
+                                            salaId.add(re.getInt("ID"));
+                                            arguments.add(re.getString("NUMERSALI"));
+                                        } catch (SQLException e) {
+                                            return;
+                                        }
+                                    }
+                                    ListView<String> selectedRooms = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                    selectedRooms.setOnMousePressed(_ -> {
+                                        if (!selectedRooms.getSelectionModel().isEmpty()) {
+                                            Integer salaIdRes = salaId.get(selectedRooms.getSelectionModel().getSelectedIndex());
+                                            ArrayList<Integer> filmyId = new ArrayList<>();
+                                            ResultSet r = DBmanager.pushSqlRaw("SELECT ID, TYTULFILMU FROM FILMY");
+                                            arguments.clear();
+                                            if (r != null) {
+                                                while (true) {
+                                                    try {
+                                                        if (!r.next()) break;
+                                                        filmyId.add(r.getInt("ID"));
+                                                        arguments.add(r.getString("TYTULFILMU"));
+                                                    } catch (SQLException e) {
+                                                        return;
+                                                    }
+                                                }
+                                                ListView<String> selectedFilms = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                                selectedFilms.setOnMousePressed(_ -> {
+                                                    if (selectedFilms.getSelectionModel().getSelectedItem() != null) {
+                                                        int selectedFilmId = filmyId.get(selectedFilms.getSelectionModel().getSelectedIndex());
+                                                        Label dateLabel = JavaFxObjectsManager.createLabel("Podaj date i godzine seansu");
+                                                        DatePicker date = new DatePicker();
+                                                        TextField text = new TextField();
+                                                        VBox box = JavaFxObjectsManager.createVBox(4, 4);
+                                                        Button sendButton = JavaFxObjectsManager.createButton("Stworz seans", () -> {
+                                                            if (date.getValue() != null && !text.getText().isEmpty()) {
+                                                                LocalDate dateString = date.getValue();
+                                                                String hourText = text.getText();
+                                                                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                                                                LocalTime time;
+                                                                try {
+                                                                    time = LocalTime.parse(hourText, timeFormatter);
+                                                                } catch (Exception e) {
+                                                                    Label format = JavaFxObjectsManager.createLabel("Wymagany format godziny to HH:mm");
+                                                                    format.setId("Format");
+                                                                    if (box.lookup("#Format") == null)
+                                                                        box.getChildren().add(format);
+                                                                    return;
+                                                                }
+                                                                LocalDateTime dateTime = LocalDateTime.of(dateString, time);
+                                                                Timestamp timestamp = Timestamp.valueOf(dateTime);
+                                                                ResultSet id = DBmanager.pushSqlRaw("SELECT MAX(ID) FROM SEANSE");
+                                                                try {
+                                                                    id.next();
+                                                                    int seansId = id.getInt("MAX(ID)") + 1;
+                                                                    String sql = "INSERT INTO SEANSE VALUES(" + seansId + ", TO_TIMESTAMP('" + timestamp + "','YYYY-MM-DD HH24:MI:SS.FF1'), "
+                                                                            + selectedFilmId + ", " + salaIdRes + ")";
+                                                                    DBmanager.pushSqlRaw(sql);
+                                                                    Label success = JavaFxObjectsManager.createLabel("Udalo sie wstawic");
+                                                                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(success);
+                                                                } catch (SQLException e) {
+                                                                    Label fail = JavaFxObjectsManager.createLabel("Nie udalo sie wyslac");
+                                                                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(fail);
+                                                                }
+                                                            }
+                                                        });
+                                                        Control[] controls = {dateLabel, date, text, sendButton};
+                                                        JavaFxObjectsManager.fillOrganizer(box, controls);
+                                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+                                                    }
+                                                });
+                                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedFilms);
+                                            }
+                                        }
+                                    });
+                                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedRooms);
+                                }
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
         }
     }
 }
