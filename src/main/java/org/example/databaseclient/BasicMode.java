@@ -45,7 +45,8 @@ public class BasicMode {
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
-        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions};
+        Button getAllIncome = JavaFxObjectsManager.createButton("Dostan wszystkie sprzedane bilety dla danych filmow", this::getAmount);
+        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -471,5 +472,38 @@ public class BasicMode {
         JavaFxObjectsManager.fillOrganizer(box, controls);
         ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
     }
+    private void getAmount() {
+        String sql = "{CALL ZliczSprzedaneBilety(?)}";
+        CallableStatement cstmt;
+        try {
+            cstmt = DBmanager.getDBConnection().prepareCall(sql);
+            cstmt.registerOutParameter(1, OracleTypes.CURSOR);
+            cstmt.execute();
+            ResultSet rs = (ResultSet) cstmt.getObject(1);
+            ArrayList<String> columns = new ArrayList<>();
+            ObservableList<ObservableList<String>> allRows = FXCollections.observableArrayList();
+            columns.add("TYTULFILMU");
+            columns.add("LICZBA_BILETOW");
+            if (rs!= null){
+                TableView<ObservableList<String>> table = JavaFxObjectsManager.createTableView(columns);
+                while (true) {
+                    try {
+                        if (!rs.next()) break;
+                        ObservableList<String> row = FXCollections.observableArrayList();
+                        for (String column : columns) row.add(rs.getString(column));
+                        allRows.add(row);
+                    } catch (SQLException e) {
+                        return;
+                    }
+                }
+                table.setItems(allRows);
+                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(table);
+                rs.close();
+            }
 
+        } catch (SQLException e) {
+            Label result = JavaFxObjectsManager.createLabel("Nie udalo sie wywolanie");
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(result);
+        }
+    }
 }
