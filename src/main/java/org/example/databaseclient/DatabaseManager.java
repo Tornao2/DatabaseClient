@@ -326,6 +326,9 @@ public class DatabaseManager {
         return readValues;
     }
 
+    public Connection getDBConnection() {
+        return DBConnection;
+    }
     public void closeConnection() {
         try {
             DBConnection.close();

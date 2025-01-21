@@ -7,9 +7,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
+import oracle.jdbc.internal.OracleTypes;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class BasicMode {
@@ -41,9 +42,10 @@ public class BasicMode {
         Button deleteData = JavaFxObjectsManager.createButton("Usun wszystkie dane", this::deleteData);
         Button addChairs = JavaFxObjectsManager.createButton("Dodaj nowe siedzenia", this::addChair);
         Button removeChairs = JavaFxObjectsManager.createButton("Usun nowe siedzenia", this::removeChair);
-        Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan zajete miejsca w seansach", this::getSessionChairs);
-        Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji podczas seansu", this::changeSessionChairs);
-        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs};
+        Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
+        Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
+        Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
+        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -417,4 +419,57 @@ public class BasicMode {
         Label result = JavaFxObjectsManager.createLabel("Wyczyszczono dane");
         ((ScrollPane) topBox.lookup("#RESULTS")).setContent(result);
     }
+    private void getSessions(){
+        Label dateFromLabel = JavaFxObjectsManager.createLabel("Od: ");
+        DatePicker dateFromField = new DatePicker();
+        Label dateToLabel = JavaFxObjectsManager.createLabel("Do: ");
+        DatePicker dateToField = new DatePicker();
+        Button send = JavaFxObjectsManager.createButton("Wyszukaj", () -> {
+            if (dateFromField.getValue() != null && dateToField.getValue() != null){
+                LocalDate dateFrom = dateFromField.getValue();
+                LocalDate dateTo = dateToField.getValue();
+                Connection con = DBmanager.getDBConnection();
+                try {
+                    CallableStatement stmt = con.prepareCall("{CALL ZnajdzSeanseCursor(?, ?, ?)}");
+                    stmt.setDate(1, Date.valueOf(dateFrom));
+                    stmt.setDate(2, Date.valueOf(dateTo));
+                    stmt.registerOutParameter(3, OracleTypes.CURSOR);
+                    stmt.execute();
+                    ResultSet rs = (ResultSet) stmt.getObject(3);
+                    if (rs != null) {
+                        ArrayList<String> columns = new ArrayList<>();
+                        ObservableList<ObservableList<String>> allRows = FXCollections.observableArrayList();
+                        columns.add("DATA");
+                        columns.add("TYTULFILMU");
+                        columns.add("NUMERSALI");
+                        columns.add("MIASTO");
+                        columns.add("PSEUDONIM");
+                        TableView<ObservableList<String>> table = JavaFxObjectsManager.createTableView(columns);
+                        while (true) {
+                            try {
+                                if (!rs.next()) break;
+                                ObservableList<String> row = FXCollections.observableArrayList();
+                                for (String column : columns) row.add(rs.getString(column));
+                                allRows.add(row);
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        table.setItems(allRows);
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(table);
+                        rs.close();
+                    }
+                } catch (SQLException e) {
+                    Label result = JavaFxObjectsManager.createLabel("Nie udalo sie wywolanie");
+                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(result);
+                }
+
+            }
+        });
+        VBox box = JavaFxObjectsManager.createVBox(4, 4);
+        Control[] controls = {dateFromLabel, dateFromField, dateToLabel, dateToField, send};
+        JavaFxObjectsManager.fillOrganizer(box, controls);
+        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+    }
+
 }

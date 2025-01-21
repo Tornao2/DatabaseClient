@@ -125,3 +125,19 @@ BEGIN
    END LOOP;
 END;
 /
+PROCEDURE ZnajdzSeanseCursor(
+    data_od DATE,
+    data_do DATE,
+    seanse OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    OPEN seanse FOR
+    SELECT s.DATA, f.TYTULFILMU, sa.NUMERSALI, k.MIASTO, k.PSEUDONIM
+    FROM SEANSE s
+    JOIN FILMY f ON s.FILMY_ID = f.ID
+    JOIN SALE sa ON s.SALA_ID = sa.ID
+    JOIN KINA k ON sa.KINA_ID = k.ID
+    WHERE s.DATA BETWEEN data_od AND data_do;
+END;
+/
