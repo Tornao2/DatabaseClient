@@ -404,7 +404,10 @@ public class BasicMode {
                                                 ListView<String> selectedChair = JavaFxObjectsManager.createHorizontalListView(roomDataFor);
                                                 selectedChair.setOnMousePressed(_ -> {
                                                     if (!selectedChair.getSelectionModel().isEmpty()) {
-                                                        DBmanager.pushSqlRaw("DELETE FROM MIEJSCA WHERE ID = " + chairId.get(selectedChair.getSelectionModel().getSelectedIndex()));
+                                                        int chairIdNum = chairId.get(selectedChair.getSelectionModel().getSelectedIndex());
+                                                        DBmanager.pushSqlRaw("DELETE FROM BILETY WHERE REZERWACJE_ID IN (SELECT ID FROM REZERWACJE WHERE MIEJSCA_ID = " + chairIdNum + ")");
+                                                        DBmanager.pushSqlRaw("DELETE FROM REZERWACJE WHERE MIEJSCA_ID = " + chairIdNum);
+                                                        DBmanager.pushSqlRaw("DELETE FROM MIEJSCA WHERE ID = " + chairIdNum);
                                                         Label label = JavaFxObjectsManager.createLabel("Usunieto miejsce");
                                                         ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
                                                     }
@@ -751,6 +754,7 @@ public class BasicMode {
                                         if (!selectedRooms.getSelectionModel().isEmpty()) {
                                             int id = salaId.get(selectedRooms.getSelectionModel().getSelectedIndex());
                                             Label finish = JavaFxObjectsManager.createLabel("");
+                                            DBmanager.pushSqlRaw("DELETE FROM BILETY WHERE REZERWACJE_ID IN (SELECT ID FROM REZERWACJE WHERE MIEJSCA_ID IN  (SELECT M.ID FROM MIEJSCA M WHERE M.SALA_ID = " + id + "))");
                                             DBmanager.pushSqlRaw("DELETE FROM REZERWACJE WHERE MIEJSCA_ID IN (SELECT M.ID FROM MIEJSCA M WHERE M.SALA_ID = " + id + ")");
                                                 DBmanager.pushSqlRaw("DELETE FROM MIEJSCA WHERE SALA_ID = " + id);
                                             DBmanager.pushSqlRaw("DELETE FROM SEANSE WHERE SALA_ID = " + id);

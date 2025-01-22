@@ -17,7 +17,7 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[SELECT * FROM SALE;]]></console>
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main" />
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
@@ -35,6 +35,7 @@
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.FILMY" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.REZERWACJE" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.BILETY" active-filter-id="" />
+    <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.KONTA" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.MIEJSCA" active-filter-id="" />
     <filter-actions connection-id="f6b29513-e644-4469-8fe8-ba77d4298de0" dataset="C##CLIENT.SALE" active-filter-id="" />
   </component>
