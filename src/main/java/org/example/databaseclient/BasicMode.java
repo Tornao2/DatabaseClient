@@ -49,8 +49,11 @@ public class BasicMode {
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
         Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
+        Button addRoomButton = JavaFxObjectsManager.createButton("Dodaj nowa sale", this::addRoom);
+        Button deleteRoomButton = JavaFxObjectsManager.createButton("Usun sale", this::deleteRoom);
         Button addSess = JavaFxObjectsManager.createButton("Dodaj nowy seans", this::addSess);
-        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome, addSess};
+        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs,
+                changeSessionChairs, getAllSessions, getAllIncome, addSess, addRoomButton, deleteRoomButton};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -633,5 +636,67 @@ public class BasicMode {
             });
             ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
         }
+    }
+    private void addRoom() {
+        ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ArrayList<Integer> cinemaId = new ArrayList<>();
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT ID, PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                cinemaId.add(res.getInt("ID"));
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            if (!selectedCinemas.getSelectionModel().isEmpty()){
+                                Label label = JavaFxObjectsManager.createLabel("Podaj numer sali");
+                                TextField roomNum = new TextField();
+                                VBox box = JavaFxObjectsManager.createVBox(4, 4);
+                                Button addButton = JavaFxObjectsManager.createButton("Dodaj sale", () -> {
+                                    ResultSet id = DBmanager.pushSqlRaw("SELECT MAX(ID) FROM SALE");
+                                    if (id != null) {
+                                        try {
+                                            id.next();
+                                            int idInt = id.getInt(1) + 1;
+                                            DBmanager.pushSqlRaw("INSERT INTO SALE VALUES("+idInt+", " +
+                                                    roomNum.getText() + ", " + cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex()) + ")");
+                                        } catch (SQLException e) {
+                                            return;
+                                        }
+                                    }
+                                });
+                                Control [] controls = {label, roomNum, addButton};
+                                JavaFxObjectsManager.fillOrganizer(box, controls);
+                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
+    }
+    private void deleteRoom() {
+
     }
 }
