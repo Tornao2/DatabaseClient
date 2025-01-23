@@ -51,12 +51,14 @@ public class BasicMode {
         Button removeSess = JavaFxObjectsManager.createButton("Usun seans", this::removeSess);
         Button addRes = JavaFxObjectsManager.createButton("Dodaj nowa rezerwacje", this::addRes);
         Button removeRes = JavaFxObjectsManager.createButton("Usun rezerwacje", this::removeRes);
+        Button addPrac = JavaFxObjectsManager.createButton("Dodaj nowego pracownika", this::addPrac);
+        Button removePrac= JavaFxObjectsManager.createButton("Usun pracownika", this::removePrac);
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
         Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
-        Button[] buttons = {deleteData, addChairs, removeChairs, addRoomButton, deleteRoomButton, addSess, removeSess, addRes, removeRes, getSessionChairs,
-                changeSessionChairs, getAllSessions, getAllIncome};
+        Button[] buttons = {deleteData, addChairs, removeChairs, addRoomButton, deleteRoomButton, addSess, removeSess, addRes, removeRes,
+                addPrac, removePrac, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -1148,6 +1150,160 @@ public class BasicMode {
                                         }
                                     });
                                     ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedRooms);
+                                }
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
+    }
+    private void addPrac() {
+        ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ArrayList<Integer> cinemaId = new ArrayList<>();
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT ID, PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                cinemaId.add(res.getInt("ID"));
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            if (!selectedCinemas.getSelectionModel().isEmpty()) {
+                                int kinoId = cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex());
+                                VBox box = JavaFxObjectsManager.createVBox(4, 4);
+                                Label labelPesel = JavaFxObjectsManager.createLabel("Pesel");
+                                TextField pesel = new TextField();
+                                Label labelData = JavaFxObjectsManager.createLabel("Data");
+                                DatePicker pick = new DatePicker();
+                                TextField data = new TextField();
+                                Label labelImie = JavaFxObjectsManager.createLabel("Imie");
+                                TextField imie = new TextField();
+                                Label labelKonto = JavaFxObjectsManager.createLabel("Konto");
+                                TextField konto = new TextField();
+                                Label labelNazwisko = JavaFxObjectsManager.createLabel("Nazwisko");
+                                TextField nazwisko = new TextField();
+                                Label labelPensja = JavaFxObjectsManager.createLabel("Pensja");
+                                TextField pensja = new TextField();
+                                Label labelStanowisko = JavaFxObjectsManager.createLabel("Stanowisko");
+                                TextField stanowisko = new TextField();
+                                Button sendButton = JavaFxObjectsManager.createButton("Stworz", () -> {
+                                    if (!pesel.getText().isEmpty() && pick.getValue() != null && !data.getText().isEmpty() &&
+                                            !imie.getText().isEmpty() && !konto.getText().isEmpty() && !nazwisko.getText().isEmpty() && !pensja.getText().isEmpty()
+                                     && !stanowisko.getText().isEmpty()){
+                                        LocalDate dateString = pick.getValue();
+                                        String hourText = data.getText();
+                                        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                                        LocalTime time;
+                                        try {
+                                            time = LocalTime.parse(hourText, timeFormatter);
+                                        } catch (Exception e) {
+                                            Label format = JavaFxObjectsManager.createLabel("Wymagany format godziny to HH:mm");
+                                            format.setId("Format");
+                                            if (box.lookup("#Format") == null)
+                                                box.getChildren().add(format);
+                                            return;
+                                        }
+                                        LocalDateTime dateTime = LocalDateTime.of(dateString, time);
+                                        Timestamp timestamp = Timestamp.valueOf(dateTime);
+                                        String sql = "Insert into pracownicy values('" + pesel.getText()+"', " + konto.getText() + ", " + pensja.getText() +
+                                                ", '" + imie.getText() + "', '" + nazwisko.getText() + "', '" + stanowisko.getText() + "', TO_TIMESTAMP('" + timestamp + "','YYYY-MM-DD HH24:MI:SS.FF1'), "
+                                                + kinoId + ")";
+                                        DBmanager.pushSqlRaw(sql);
+                                        Label format = JavaFxObjectsManager.createLabel("Dodano");
+                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(format);
+                                    }
+                                });
+                                Control [] controls = {labelPesel, pesel, labelData, pick, data, labelImie, imie, labelKonto, konto, labelNazwisko,
+                                nazwisko, labelPensja, pensja, labelStanowisko, stanowisko, sendButton};
+                                JavaFxObjectsManager.fillOrganizer(box, controls);
+                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
+    }
+    private void removePrac() {
+        ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ArrayList<Integer> cinemaId = new ArrayList<>();
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT ID, PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                cinemaId.add(res.getInt("ID"));
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            if (!selectedCinemas.getSelectionModel().isEmpty()) {
+                                int kinoId = cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex());
+                                ResultSet re = DBmanager.pushSqlRaw("SELECT PESEL, IMIE, NAZWISKO, STANOWISKO FROM PRACOWNICY WHERE KINA_ID = " + kinoId);
+                                arguments.clear();
+                                ArrayList<String> pesel = new ArrayList<>();
+                                if (re != null) {
+                                    while (true) {
+                                        try {
+                                            if (!re.next()) break;
+                                            pesel.add(re.getString("PESEL"));
+                                            arguments.add(re.getString("IMIE") + " " + re.getString("NAZWISKO") + " "
+                                            + re.getString("STANOWISKO") + " " + re.getString("PESEL"));
+                                        } catch (SQLException e) {
+                                            return;
+                                        }
+                                    }
+                                    ListView<String> selectedPrac = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                    selectedPrac.setOnMousePressed(_ -> {
+                                        if (!selectedPrac.getSelectionModel().isEmpty()){
+                                            String prac = pesel.get(selectedPrac.getSelectionModel().getSelectedIndex());
+                                            DBmanager.pushSqlRaw("DELETE FROM PRACOWNICY WHERE PESEL = '" + prac + "'");
+                                            Label label = JavaFxObjectsManager.createLabel("Usunieto");
+                                            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
+                                        }
+                                    });
+                                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedPrac);
                                 }
                             }
                         });

@@ -17,7 +17,7 @@
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="f6b29513-e644-4469-8fe8-ba77d4298de0">
-      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[SELECT * FROM REZERWACJE;]]></console>
+      <console name="MyData" type="STANDARD" schema="C##CLIENT" session="Main"><![CDATA[SELECT * FROM pracownicy;]]></console>
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseEditorStateManager">
