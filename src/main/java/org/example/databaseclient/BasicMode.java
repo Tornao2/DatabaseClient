@@ -9,6 +9,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 import oracle.jdbc.internal.OracleTypes;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,12 +54,14 @@ public class BasicMode {
         Button removeRes = JavaFxObjectsManager.createButton("Usun rezerwacje", this::removeRes);
         Button addPrac = JavaFxObjectsManager.createButton("Dodaj nowego pracownika", this::addPrac);
         Button removePrac= JavaFxObjectsManager.createButton("Usun pracownika", this::removePrac);
+        Button addOcen = JavaFxObjectsManager.createButton("Dodaj nowa ocene", this::addOcen);
+        Button removeOcen = JavaFxObjectsManager.createButton("Usun ocene", this::removeOcen);
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
         Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
         Button[] buttons = {deleteData, addChairs, removeChairs, addRoomButton, deleteRoomButton, addSess, removeSess, addRes, removeRes,
-                addPrac, removePrac, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
+                addPrac, removePrac, addOcen, removeOcen, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -1312,6 +1315,126 @@ public class BasicMode {
                 }
             });
             ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
+    }
+    private void addOcen() {
+        ResultSet result = DBmanager.pushSqlRaw("SELECT LOGIN, EMAIL FROM KONTA");
+        ArrayList<String> arguments = new ArrayList<>();
+        ArrayList<String> emails = new ArrayList<>();
+        if (result != null){
+            while (true) {
+                try {
+                    if (!result.next()) break;
+                    arguments.add(result.getString("LOGIN"));
+                    emails.add(result.getString("EMAIL"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> logins = JavaFxObjectsManager.createHorizontalListView(arguments);
+            logins.setOnMousePressed(_ -> {
+                if (!logins.getSelectionModel().isEmpty()){
+                    String chosenEmail = emails.get(logins.getSelectionModel().getSelectedIndex());
+                    ResultSet resul = DBmanager.pushSqlRaw("SELECT ID, TYTULFILMU, ROKPRODUKCJI FROM FILMY");
+                    ArrayList<Integer> filmyId = new ArrayList<>();
+                    arguments.clear();
+                    if (resul != null) {
+                        while (true) {
+                            try {
+                                if (!resul.next()) break;
+                                arguments.add(resul.getString("TYTULFILMU") + "(" + resul.getInt("ROKPRODUKCJI") + ")");
+                                filmyId.add(resul.getInt("ID"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> filmy = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        filmy.setOnMousePressed(_ -> {
+                            if (!filmy.getSelectionModel().isEmpty()) {
+                                int filmId = filmyId.get(filmy.getSelectionModel().getSelectedIndex());
+                                VBox box = JavaFxObjectsManager.createVBox(4, 4);
+                                Label labelKomentarz = JavaFxObjectsManager.createLabel("Komentarz:");
+                                TextField komentarz = new TextField();
+                                Label labelOcena = JavaFxObjectsManager.createLabel("Ocena:");
+                                TextField ocena = new TextField();
+                                Button but = JavaFxObjectsManager.createButton("Stworz", () -> {
+                                    if (!komentarz.getText().isEmpty() && !ocena.getText().isEmpty()) {
+                                        ResultSet id = DBmanager.pushSqlRaw("SELECT MAX(ID) FROM OCENY");
+                                        if (id != null) {
+                                            Label stanLabel = JavaFxObjectsManager.createLabel("");
+                                            try {
+                                                id.next();
+                                                int idInt = id.getInt(1) + 1;
+                                                DBmanager.pushSqlRaw("INSERT INTO OCENY VALUES(" + idInt + ", " + ocena.getText() + ", '"
+                                                        + komentarz.getText() + "', '" + chosenEmail + "' , " + filmId + ")");
+                                                stanLabel.setText("Dodano");
+                                            } catch (SQLException _) {
+                                                stanLabel.setText("Nie udalo sie dodac");
+                                            } finally {
+                                                stanLabel.setVisible(true);
+                                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(stanLabel);
+                                            }
+                                        }
+                                    }
+                                });
+                                Control[] controls = {labelKomentarz, komentarz, labelOcena,ocena, but};
+                                JavaFxObjectsManager.fillOrganizer(box, controls);
+                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(filmy);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(logins);
+        }
+    }
+    private void removeOcen() {
+        ResultSet result = DBmanager.pushSqlRaw("SELECT LOGIN, EMAIL FROM KONTA");
+        ArrayList<String> arguments = new ArrayList<>();
+        ArrayList<String> emails = new ArrayList<>();
+        if (result != null){
+            while (true) {
+                try {
+                    if (!result.next()) break;
+                    arguments.add(result.getString("LOGIN"));
+                    emails.add(result.getString("EMAIL"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> logins = JavaFxObjectsManager.createHorizontalListView(arguments);
+            logins.setOnMousePressed(_ -> {
+                if (!logins.getSelectionModel().isEmpty()){
+                    String chosenEmail = emails.get(logins.getSelectionModel().getSelectedIndex());
+                    ResultSet resul = DBmanager.pushSqlRaw("SELECT ID, TYTULFILMU, ROKPRODUKCJI FROM FILMY");
+                    ArrayList<Integer> filmyId = new ArrayList<>();
+                    arguments.clear();
+                    if (resul != null) {
+                        while (true) {
+                            try {
+                                if (!resul.next()) break;
+                                arguments.add(resul.getString("TYTULFILMU") + "(" + resul.getInt("ROKPRODUKCJI") + ")");
+                                filmyId.add(resul.getInt("ID"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> filmy = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        filmy.setOnMousePressed(_ -> {
+                            if (!filmy.getSelectionModel().isEmpty()) {
+                                int filmId = filmyId.get(filmy.getSelectionModel().getSelectedIndex());
+                                DBmanager.pushSqlRaw("DELETE FROM OCENY WHERE FILMY_ID = " + filmId + " AND KONTA_EMAIL = '"
+                                        + chosenEmail + "'");
+                                Label label = JavaFxObjectsManager.createLabel("Usunieto");
+                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(filmy);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(logins);
         }
     }
 }
