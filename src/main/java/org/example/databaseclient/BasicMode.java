@@ -45,15 +45,16 @@ public class BasicMode {
         Button deleteData = JavaFxObjectsManager.createButton("Usun wszystkie dane", this::deleteData);
         Button addChairs = JavaFxObjectsManager.createButton("Dodaj nowe siedzenia", this::addChair);
         Button removeChairs = JavaFxObjectsManager.createButton("Usun nowe siedzenia", this::removeChair);
+        Button addRoomButton = JavaFxObjectsManager.createButton("Dodaj nowa sale", this::addRoom);
+        Button deleteRoomButton = JavaFxObjectsManager.createButton("Usun sale", this::deleteRoom);
+        Button addSess = JavaFxObjectsManager.createButton("Dodaj nowy seans", this::addSess);
+        Button removeSess = JavaFxObjectsManager.createButton("Usun seans", this::removeSess);
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
         Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
-        Button addRoomButton = JavaFxObjectsManager.createButton("Dodaj nowa sale", this::addRoom);
-        Button deleteRoomButton = JavaFxObjectsManager.createButton("Usun sale", this::deleteRoom);
-        Button addSess = JavaFxObjectsManager.createButton("Dodaj nowy seans", this::addSess);
-        Button[] buttons = {deleteData, addChairs, removeChairs, getSessionChairs,
-                changeSessionChairs, getAllSessions, getAllIncome, addSess, addRoomButton, deleteRoomButton};
+        Button[] buttons = {deleteData, addChairs, removeChairs, addRoomButton, deleteRoomButton, addSess, removeSess, getSessionChairs,
+                changeSessionChairs, getAllSessions, getAllIncome};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -761,6 +762,95 @@ public class BasicMode {
                                                 DBmanager.pushSqlRaw("DELETE FROM SALE WHERE ID = " + id);
                                                 finish.setText("Udalo sie");
                                                 ((ScrollPane) topBox.lookup("#RESULTS")).setContent(finish);
+                                        }
+                                    });
+                                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedRooms);
+                                }
+                            }
+                        });
+                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedCinemas);
+                    }
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(cities);
+        }
+    }
+    private void removeSess() {
+        ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (results != null) {
+            while (true) {
+                try {
+                    if (!results.next()) break;
+                    arguments.add(results.getString("MIASTO"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> cities = JavaFxObjectsManager.createHorizontalListView(arguments);
+            cities.setOnMousePressed(_ -> {
+                if (!cities.getSelectionModel().isEmpty()) {
+                    ArrayList<Integer> cinemaId = new ArrayList<>();
+                    ResultSet res = DBmanager.pushSqlRaw("SELECT ID, PSEUDONIM FROM KINA WHERE MIASTO = " + "'" + cities.getSelectionModel().getSelectedItem() + "'");
+                    arguments.clear();
+                    if (res != null) {
+                        while (true) {
+                            try {
+                                if (!res.next()) break;
+                                cinemaId.add(res.getInt("ID"));
+                                arguments.add(res.getString("PSEUDONIM"));
+                            } catch (SQLException e) {
+                                return;
+                            }
+                        }
+                        ListView<String> selectedCinemas = JavaFxObjectsManager.createHorizontalListView(arguments);
+                        selectedCinemas.setOnMousePressed(_ -> {
+                            if (!selectedCinemas.getSelectionModel().isEmpty()) {
+                                ArrayList<Integer> salaId = new ArrayList<>();
+                                ResultSet re = DBmanager.pushSqlRaw("SELECT ID, NUMERSALI FROM SALE s " +
+                                        "where s.kina_id = " + cinemaId.get(selectedCinemas.getSelectionModel().getSelectedIndex()));
+                                arguments.clear();
+                                if (re != null) {
+                                    while (true) {
+                                        try {
+                                            if (!re.next()) break;
+                                            salaId.add(re.getInt("ID"));
+                                            arguments.add(re.getString("NUMERSALI"));
+                                        } catch (SQLException e) {
+                                            return;
+                                        }
+                                    }
+                                    ListView<String> selectedRooms = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                    selectedRooms.setOnMousePressed(_ -> {
+                                        if (!selectedRooms.getSelectionModel().isEmpty()) {
+                                            Integer salaIdRes = salaId.get(selectedRooms.getSelectionModel().getSelectedIndex());
+                                            ResultSet r = DBmanager.pushSqlRaw("SELECT S.ID, s.DATA,F.TYTULFILMU FROM SEANSE S join filmy f" +
+                                                    " on s.filmy_id = f.id WHERE s.SALA_ID = " + salaIdRes);
+                                            ArrayList <Integer> seanseId = new ArrayList<>();
+                                            arguments.clear();
+                                            if (r != null) {
+                                                while (true) {
+                                                    try {
+                                                        if (!r.next()) break;
+                                                        seanseId.add(r.getInt("ID"));
+                                                        arguments.add(r.getString("TYTULFILMU") + " " +r.getString("DATA"));
+                                                    } catch (SQLException e) {
+                                                        return;
+                                                    }
+                                                }
+                                                ListView<String> selectedFilms = JavaFxObjectsManager.createHorizontalListView(arguments);
+                                                selectedFilms.setOnMousePressed(_ -> {
+                                                    if (!selectedFilms.getSelectionModel().isEmpty()){
+                                                        int seansId = seanseId.get(selectedFilms.getSelectionModel().getSelectedIndex());
+                                                        DBmanager.pushSqlRaw("DELETE FROM BILETY WHERE REZERWACJE_ID IN (SELECT ID FROM REZERWACJE WHERE SEANSE_ID = " + seansId +")");
+                                                        DBmanager.pushSqlRaw("DELETE FROM REZERWACJE WHERE SEANSE_ID = " + seansId);
+                                                        DBmanager.pushSqlRaw("DELETE FROM SEANSE WHERE ID = " + seansId);
+                                                        Label label = JavaFxObjectsManager.createLabel("Usunieto");
+                                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
+                                                    }
+                                                });
+                                                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedFilms);
+                                            }
                                         }
                                     });
                                     ((ScrollPane) topBox.lookup("#RESULTS")).setContent(selectedRooms);
