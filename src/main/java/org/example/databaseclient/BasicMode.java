@@ -9,7 +9,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 import oracle.jdbc.internal.OracleTypes;
 
-import javax.xml.transform.Result;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,12 +55,15 @@ public class BasicMode {
         Button removePrac= JavaFxObjectsManager.createButton("Usun pracownika", this::removePrac);
         Button addOcen = JavaFxObjectsManager.createButton("Dodaj nowa ocene", this::addOcen);
         Button removeOcen = JavaFxObjectsManager.createButton("Usun ocene", this::removeOcen);
+        Button addKonto = JavaFxObjectsManager.createButton("Dodaj nowe konto", this::addKonto);
+        Button removeKonto = JavaFxObjectsManager.createButton("Usun konto", this::removeKonto);
         Button getSessionChairs = JavaFxObjectsManager.createButton("Dostan stan miejsc w seansach", this::getSessionChairs);
         Button changeSessionChairs = JavaFxObjectsManager.createButton("Zmien stan rezerwacji dla seansu", this::changeSessionChairs);
         Button getAllSessions = JavaFxObjectsManager.createButton("Dostan wszystkie seansy w przedziale czasu", this::getSessions);
         Button getAllIncome = JavaFxObjectsManager.createButton("Dostan liczbe sprzedanych biletow dla filmow", this::getAmount);
         Button[] buttons = {deleteData, addChairs, removeChairs, addRoomButton, deleteRoomButton, addSess, removeSess, addRes, removeRes,
-                addPrac, removePrac, addOcen, removeOcen, getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
+                addPrac, removePrac, addOcen, removeOcen, addKonto, removeKonto,
+                getSessionChairs, changeSessionChairs, getAllSessions, getAllIncome};
         return new FlowPane(buttons);
     }
     private void getSessionChairs() {
@@ -1233,9 +1235,13 @@ public class BasicMode {
                                         String sql = "Insert into pracownicy values('" + pesel.getText()+"', " + konto.getText() + ", " + pensja.getText() +
                                                 ", '" + imie.getText() + "', '" + nazwisko.getText() + "', '" + stanowisko.getText() + "', TO_TIMESTAMP('" + timestamp + "','YYYY-MM-DD HH24:MI:SS.FF1'), "
                                                 + kinoId + ")";
-                                        DBmanager.pushSqlRaw(sql);
-                                        Label format = JavaFxObjectsManager.createLabel("Dodano");
-                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(format);
+                                        ResultSet resi = DBmanager.pushSqlRaw(sql);
+                                        Label label;
+                                        if (resi != null)
+                                            label = JavaFxObjectsManager.createLabel("Stworzono");
+                                        else
+                                            label = JavaFxObjectsManager.createLabel("Nie udalo sie, najprawdopodobniej pesel juz zajety");
+                                        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
                                     }
                                 });
                                 Control [] controls = {labelPesel, pesel, labelData, pick, data, labelImie, imie, labelKonto, konto, labelNazwisko,
@@ -1435,6 +1441,54 @@ public class BasicMode {
                 }
             });
             ((ScrollPane) topBox.lookup("#RESULTS")).setContent(logins);
+        }
+    }
+    private void addKonto() {
+        VBox box = JavaFxObjectsManager.createVBox(4, 4);
+        Label emailLabel = JavaFxObjectsManager.createLabel("Email");
+        TextField email = new TextField();
+        Label hasloLabel = JavaFxObjectsManager.createLabel("Haslo");
+        TextField haslo = new TextField();
+        Label loginLabel = JavaFxObjectsManager.createLabel("Login");
+        TextField login = new TextField();
+        Button send = JavaFxObjectsManager.createButton("Stworz", () -> {
+            if (!email.getText().isEmpty() && !haslo.getText().isEmpty() && !login.getText().isEmpty()) {
+                ResultSet result = DBmanager.pushSqlRaw("insert into konta values('" + email.getText() + "', '" + login.getText() + "', '" +
+                        haslo.getText() + "')");
+                Label label;
+                if (result != null) {
+                    label = JavaFxObjectsManager.createLabel("Stworzono");
+                } else {
+                    label = JavaFxObjectsManager.createLabel("Nie udalo sie, najprawdopodbniej email juz zajety");
+                }
+                ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
+            }
+        });
+        Control [] controls = {emailLabel, email, hasloLabel, haslo, loginLabel, login, send};
+        JavaFxObjectsManager.fillOrganizer(box, controls);
+        ((ScrollPane) topBox.lookup("#RESULTS")).setContent(box);
+    }
+    private void removeKonto() {
+        ResultSet result = DBmanager.pushSqlRaw("SELECT EMAIL FROM KONTA");
+        ArrayList<String> arguments = new ArrayList<>();
+        if (result != null) {
+            while (true) {
+                try {
+                    if (!result.next()) break;
+                    arguments.add(result.getString("EMAIL"));
+                } catch (SQLException e) {
+                    return;
+                }
+            }
+            ListView<String> emails = JavaFxObjectsManager.createHorizontalListView(arguments);
+            emails.setOnMousePressed(_ -> {
+                if (emails.getSelectionModel().getSelectedItem() != null){
+                    DBmanager.pushSqlRaw("DELETE FROM KONTA WHERE EMAIL = '" +emails.getSelectionModel().getSelectedItem()+"'");
+                    Label label = JavaFxObjectsManager.createLabel("Usunieto");
+                    ((ScrollPane) topBox.lookup("#RESULTS")).setContent(label);
+                }
+            });
+            ((ScrollPane) topBox.lookup("#RESULTS")).setContent(emails);
         }
     }
 }
