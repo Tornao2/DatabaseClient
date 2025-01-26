@@ -1256,9 +1256,9 @@ public class BasicMode {
                                         }
                                         LocalDateTime dateTime = LocalDateTime.of(dateString, time);
                                         Timestamp timestamp = Timestamp.valueOf(dateTime);
-                                        String sql = "Insert into pracownicy values('" + pesel.getText() + "', " + konto.getText() + ", " + pensja.getText() +
-                                                ", '" + imie.getText() + "', '" + nazwisko.getText() + "', '" + stanowisko.getText() + "', TO_TIMESTAMP('" + timestamp + "','YYYY-MM-DD HH24:MI:SS.FF1'), "
-                                                + kinoId + ")";
+                                        String sql = "Insert into pracownicy values('" + pesel.getText() + "', " + "TO_TIMESTAMP('" + timestamp + "','YYYY-MM-DD HH24:MI:SS.FF1'), '" +
+                                                imie.getText() + "', '" + nazwisko.getText() + "', '" + konto.getText() + "', " + pensja.getText() + "', '" + stanowisko.getText() +
+                                         "', " + kinoId;
                                         ResultSet resi = DBmanager.pushSqlRaw(sql);
                                         Label label;
                                         if (resi != null)
@@ -1477,7 +1477,7 @@ public class BasicMode {
         TextField login = new TextField();
         Button send = JavaFxObjectsManager.createButton("Stworz", () -> {
             if (!email.getText().isEmpty() && !haslo.getText().isEmpty() && !login.getText().isEmpty()) {
-                ResultSet result = DBmanager.pushSqlRaw("insert into konta values('" + email.getText() + "', '" + login.getText() + "', '" +
+                ResultSet result = DBmanager.pushSqlRaw("insert into konta values('" +  login.getText() + "', '" +  email.getText() + "', '" +
                         haslo.getText() + "')");
                 Label label;
                 if (result != null) {

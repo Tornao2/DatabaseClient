@@ -27,10 +27,10 @@ LOGIN VARCHAR2(50)
 /
 CREATE TABLE OCENY(
 ID INTEGER PRIMARY KEY,
-KOMENTARZ VARCHAR2(1024),
 OCENA INTEGER,
-filmy_id integer,
+KOMENTARZ VARCHAR2(1024),
 konta_email varchar2(255),
+filmy_id integer,
 foreign key (filmy_id) references filmy(id),
 foreign key (konta_email) references konta(email)
 )
