@@ -1679,6 +1679,7 @@ public class BasicMode {
                 if (logins.getSelectionModel().getSelectedItem() != null) {
                     String email = emails.get(logins.getSelectionModel().getSelectedIndex());
                     ResultSet results = DBmanager.pushSqlRaw("SELECT MIASTO FROM KINA GROUP BY MIASTO");
+                    arguments.clear();
                     if (results != null) {
                         while (true) {
                             try {
